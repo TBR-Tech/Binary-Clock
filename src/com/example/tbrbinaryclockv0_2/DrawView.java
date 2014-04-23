@@ -2,6 +2,8 @@ package com.example.tbrbinaryclockv0_2;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -32,9 +34,7 @@ public class DrawView extends View
 
 	UpdateTime updateTimeDefaults = new UpdateTime(this);
 	TimeDateBlock timeDateBlocksDefaults = new TimeDateBlock();
-	
-	  
-	
+		
 	TimeDateBlock seconds_1 = new TimeDateBlock(440, 300, 80, 80, Color.GREEN, Color.BLACK);
 	TimeDateBlock seconds_2 = new TimeDateBlock(440, 220, 80, 80, Color.GREEN, Color.BLACK);
 	TimeDateBlock seconds_4 = new TimeDateBlock(440, 140, 80, 80, Color.GREEN, Color.BLACK);
@@ -107,46 +107,41 @@ public class DrawView extends View
   @Override
   public void draw(Canvas canvas)
   {
-  	canvas.drawColor(backgroundColor);
+	canvas.drawColor(backgroundColor);
   	updateTime(canvas, updateTimeDefaults.Get1224Mode());
   }
     
   public void updateTime(Canvas canvas, boolean twelve24Mode)
 	{
-	  long millis = System.currentTimeMillis();
-	  SimpleDateFormat sdf = new SimpleDateFormat("HH.mm.ss.MM.dd.yy");
-
-	  String sdfString = sdf.format(new Date(millis));
-
-	  int hours = Integer.parseInt(sdfString.substring(0, 2));
-	  int minutes = Integer.parseInt(sdfString.substring(3, 5));
-	  int seconds = Integer.parseInt(sdfString.substring(6, 8));
+	  int hours;
 	  
-	  int month = Integer.parseInt(sdfString.substring(9, 11));
-	  int day = Integer.parseInt(sdfString.substring(12, 14));
-	  int year = Integer.parseInt(sdfString.substring(15, 17));
-
-	  setSecondsBlocks(canvas, seconds);
-	  setMinutesBlocks(canvas, minutes);
+	  Calendar rightNow = Calendar.getInstance();
 	  
 	  if(timeDateBlocksDefaults.isAmPmMode() == true)
-	  {
-	  	if(hours > 12)
-	  		hours -= 12;
-	  }
-  	
+		  hours = rightNow.get(Calendar.HOUR);
+	  else
+		  hours = rightNow.get(Calendar.HOUR_OF_DAY);
+	  int minutes = rightNow.get(Calendar.MINUTE);
+	  int seconds = rightNow.get(Calendar.SECOND);
+	  
+	  int month = rightNow.get(Calendar.MONTH) + 1;
+	  int day = rightNow.get(Calendar.DATE);
+	  int year = rightNow.get(Calendar.YEAR);
+
+	  setSecondsBlocks(canvas, seconds);
+	  setMinutesBlocks(canvas, minutes);	  
 	  setHoursBlocks(canvas, hours);	  	
 
-		if(dayMonthDisplayMode == true)
-		{
-		  setDaysBlocks(canvas, day);
-		  setMonthsBlocks(canvas, month);
-		}
-		else
-		{
-		  setMonthsBlocks(canvas, month);
-		  setDaysBlocks(canvas, day);
-		}
+	  if(dayMonthDisplayMode == true)
+	  {
+  	    setDaysBlocks(canvas, day);
+	    setMonthsBlocks(canvas, month);
+	  }
+	  else
+	  {
+	    setMonthsBlocks(canvas, month);
+		setDaysBlocks(canvas, day);
+	  }
 	  setYearsBlocks(canvas, year);	  
 	}
 	
@@ -245,26 +240,26 @@ public class DrawView extends View
 		right = block.GetCenter()[0] + (width/2) - border;
 		top = block.GetCenter()[1] - (height/2) + border;
 		bottom = block.GetCenter()[1] + (height/2) - border;
-			sizeX = right - left;
-			sizeY = bottom - top;
-		  
-			switch(shape)
-			{
-				case TimeDateBlock.RECTANGLE:
-					canvas.drawRect(left, top, right, bottom, paint);
-					break;
-					
-				case TimeDateBlock.CIRCLE:
-					canvas.drawCircle(block.GetCenter()[0], block.GetCenter()[1], (sizeX > sizeY)?sizeY/2:sizeX/2, paint);
-					break;
+		sizeX = right - left;
+		sizeY = bottom - top;
+	  
+		switch(shape)
+		{
+			case TimeDateBlock.RECTANGLE:
+				canvas.drawRect(left, top, right, bottom, paint);
+				break;
+				
+			case TimeDateBlock.CIRCLE:
+				canvas.drawCircle(block.GetCenter()[0], block.GetCenter()[1], (sizeX > sizeY)?sizeY/2:sizeX/2, paint);
+				break;
 
-				case TimeDateBlock.OVAL:
-					RectF oval = new RectF(left, top, right, bottom);
-					canvas.drawOval(oval, paint);
-					break;
-					
-					default:break;
-			}
+			case TimeDateBlock.OVAL:
+				RectF oval = new RectF(left, top, right, bottom);
+				canvas.drawOval(oval, paint);
+				break;
+				
+				default:break;
+		}		
 	  }
 	}
 	
@@ -285,6 +280,8 @@ public class DrawView extends View
 	
 	public void setMinutesBlocks(Canvas canvas, int minutes)
 	{
+		//static int oldMinutes = minutes;
+		
 		int minuteOnes = minutes%10;
 		int minuteTens = minutes/10;
 		
@@ -310,6 +307,16 @@ public class DrawView extends View
 		
 		setTransparentTimeBlocks(hours_11, hourTens, canvas, 1);
 		setTransparentTimeBlocks(hours_12, hourTens, canvas, 2);
+		
+		if(timeDateBlocksDefaults.isAmPmMode() == true)
+		{
+		  paint.setColor(~backgroundColor);
+	  	  paint.setTextSize(100);
+	  	  if(hours < 12)
+	  		  canvas.drawText("A",  20, 80, paint);
+	  	  else
+	  		  canvas.drawText("P",  20, 80, paint);
+		}
 	}
   
 	private void setDaysBlocks(Canvas canvas, int day)
