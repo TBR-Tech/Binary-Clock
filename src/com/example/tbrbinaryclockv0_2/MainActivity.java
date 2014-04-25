@@ -31,6 +31,7 @@ public class MainActivity extends Activity
 	Canvas canvas;
 	Context context;
   	Settings settings = new Settings();
+  	Menu menu2;
 
 	public enum Menus
 	{
@@ -79,6 +80,7 @@ public class MainActivity extends Activity
   private final static int YSIZE = XSIZE + 1;
 
   Vibrator vibrator;
+  Menu menu;
   
 	@Override
     protected void onCreate(Bundle savedInstanceState) 
@@ -92,8 +94,8 @@ public class MainActivity extends Activity
         drawView.setBkgdColor();
         context = this;
       	vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
-      	settings.GetSettings(context, drawView, tdBlock);
-     }
+      	settings.GetSettings(context, drawView, tdBlock); 
+    }
 
 	@Override
     protected void onPause() 
@@ -120,35 +122,11 @@ public class MainActivity extends Activity
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) 
     {
-      SubMenu setColorsMenu = menu.addSubMenu(SETCOLORSMENU, SETCOLORSMENU, 0, "Set Colors");
+		super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.main, menu);
+	    //return true;
+		return true;
 
-      SubMenu setShapesMenu = menu.addSubMenu(SETSHAPESMENU, SETSHAPESMENU, 0, "Set Shapes");
-      setShapesMenu.add(SETSHAPESMENU, RECTANGLE, 0, "Rectangle");
-      setShapesMenu.add(SETSHAPESMENU, CIRCLE, 1, "Circle");
-      setShapesMenu.add(SETSHAPESMENU, OVAL, 2, "Oval");
-      
-      SubMenu setLocationMenu = menu.addSubMenu(SETLOCATIONMENU, SETLOCATIONMENU, 0, "Set Location");
-      setLocationMenu.add(SETLOCATIONMENU, XSTART, 0, "Starting X Location");
-      setLocationMenu.add(SETLOCATIONMENU, YSTART, 1, "Starting Y Location");
-      setLocationMenu.add(SETLOCATIONMENU, FULLSCREEN, 2, "Full Screen");
-      
-      SubMenu setSizesMenu = menu.addSubMenu(SETSIZESMENU, SETSIZESMENU, 0, "Set Size");
-      setSizesMenu.add(SETSIZESMENU, XSIZE, 0, "Set Width");
-      setSizesMenu.add(SETSIZESMENU, YSIZE, 1, "Set Height");
-      
-      SubMenu modeMenu = menu.addSubMenu(TIMEMODEMENU, TIMEMODEMENU, 0, "12/24 Hour Mode");
-      modeMenu.add(TIMEMODEMENU, TWELVE, 0, "12 hour mode (AM/PM)");
-      modeMenu.add(TIMEMODEMENU, TWENTYFOUR, 1, "24 hour mode");
-            
-      SubMenu dateFormatMenu = menu.addSubMenu(DATEFORMATMENU, DATEFORMATMENU, 0, "Format Date");
-      dateFormatMenu.add(DATEFORMATMENU, DAYMONTH, 0, "Day/Month");
-      dateFormatMenu.add(DATEFORMATMENU, MONTHDAY, 1, "Month/Day");
-      
-      SubMenu quitMenu = menu.addSubMenu(QUITMENU, QUITMENU, 0, "Quit App");
-      
-      //menu.setGroupCheckable(Menus.TIMEMODE.ordinal(), true, true);
- 
-      return true;
     }
     
     @Override
@@ -160,67 +138,56 @@ public class MainActivity extends Activity
     	Toast toast;
     	
 		vibrator.vibrate(150);
+		int itemId = item.getItemId();
     	    	
     	switch (item.getItemId()) 
     	{
-    		case SETCOLORSMENU:	// Set Colors
-			// get the color picker
-  			 text = "Set Colors not implemented yet\n\rDue in v0.3";
-					toast = Toast.makeText(context, text, duration);
-					toast.show();
-					break;
-					
-			case RECTANGLE:	// Set Shapes
-				drawView.timeDateBlocksDefaults.setShape(TimeDateBlock.RECTANGLE);
-				break;
-				
-			case CIRCLE:	// Set Shapes
+	    	case R.id.SetOnColor:
+	    		item.setIcon(R.drawable.ic_menu_greenicon);
+	    		// get color picker value
+	    		// set into timeDateBlock.OnColor
+	    		break;
+	    	
+	    	case R.id.SetOffColor:
+	    		// get color picker value
+	    		// set into timeDateBlock.OffColor
+	   		break;
+	   		
+	    	case R.id.SetShapeCircle:
 				drawView.timeDateBlocksDefaults.setShape(TimeDateBlock.CIRCLE);
 				break;
-				
-			case OVAL:	// Set Shapes
+	    	
+	    	case R.id.SetShapeRectangle:
+				drawView.timeDateBlocksDefaults.setShape(TimeDateBlock.RECTANGLE);
+				break;
+	    	
+	    	case R.id.SetShapeOval:
 				drawView.timeDateBlocksDefaults.setShape(TimeDateBlock.OVAL);
 				break;
-			
-			case XSTART:
-				break;
-			
-			case YSTART:
-				break;
-			
-			case FULLSCREEN:
-				break;
-			
-			case XSIZE:
-				drawView.timeDateBlocksDefaults.setWidth(80);
-				break;
-			
-			case YSIZE:
-				drawView.timeDateBlocksDefaults.setHeight(40);
-				break;
-			
-			case	TWELVE:	// 12/24 Hour Mode
-				//settings.GetSettings(context, drawView, tdBlock);
+				
+	    	case R.id.SizeWidth:
+	    		break;
+	    		
+	    	case R.id.SizeHeight:
+	    		break;
+	    		   	
+			case R.id.twelve24Mode:
 				drawView.timeDateBlocksDefaults.setAmPmMode(true);
-				//settings.SetSettings(context, drawView, tdBlock);
 				break;
-    			
-    		case	TWENTYFOUR:
-    			drawView.timeDateBlocksDefaults.setAmPmMode(false);
-    			break;
-    			
-    		case DAYMONTH:	// Date Format
-    			tdBlock.setDayMonthDisplayMode(true);
-    			break;
-    			
-    		case MONTHDAY:	// Date Format
-    			tdBlock.setDayMonthDisplayMode(false);
-    			break;
-    			
-    		case QUITMENU:	// Quit
-    			quitApp();
-     			break;
-    	}
+				
+			case R.id.twenty_four_hour_mode:
+			//case	TWENTYFOUR:
+				drawView.timeDateBlocksDefaults.setAmPmMode(false);
+				break;
+				
+			case R.id.day_month_mode:
+				tdBlock.setDayMonthDisplayMode(true);
+				break;
+				
+			case R.id.month_day_mode:
+				tdBlock.setDayMonthDisplayMode(false);
+				break;
+       	}
     	return true;   	
     }
     

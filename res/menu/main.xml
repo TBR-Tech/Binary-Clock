@@ -1,9 +1,53 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/action_settings"/>
-
+ 	<item 
+ 	    android:id="@+id/SetColors" 
+        android:icon="@drawable/ic_menu_greenicon" 
+        android:label="This label"
+ 	    android:title="@string/set_colors" 
+ 	    android:visible="true">
+       <menu>    
+	       <item 
+	           android:id="@+id/SetOnColor" 
+	           android:title="@string/set_on_color"
+	           android:icon="@drawable/ic_menu_greenicon" 
+	           android:visible="true"/>
+	       <item 
+	           android:id="@+id/SetOffColor" 
+	           android:title="@string/set_off_color" 
+	           android:icon="@drawable/ic_menu_redicon" 
+	           android:visible="true"/>
+       </menu> 
+    </item>
+    <item android:id="@+id/SetShape" android:title="@string/set_shape">
+ 	    <menu>
+ 			<item android:id="@+id/SetShapeCircle" android:title="@string/shape_circle"></item>
+ 			<item android:id="@+id/SetShapeRectangle" android:title="@string/shape_rectangle" />
+ 			<item android:id="@+id/SetShapeOval" android:title="@string/shape_oval" />
+ 		</menu>
+ 	</item> 	
+ 	<item android:id="@+id/SetLocations" android:title="@string/set_location">
+ 		<menu>
+ 			<item android:id="@+id/TimeLocation" android:title="@string/time_center"/>
+ 			<item android:id="@+id/DateLocation" android:title="@string/date_center"/>
+ 		</menu>
+ 	</item>
+ 	<item android:id="@+id/SetSize" android:title="@string/set_sizes">
+ 		<menu>
+ 			<item android:id="@+id/SizeWidth" android:title="@string/set_size_width"/>
+ 			<item android:id="@+id/SizeHeight" android:title="@string/set_size_height"/>
+ 		</menu>
+ 	</item>
+ 	<item android:id="@+id/twelve24Mode" android:title="@string/twelve_24_mode" android:checked="false" android:enabled="true" android:visible="true" android:checkable="false">
+ 		<menu>
+ 			<item android:id="@+id/twelve_hour_mode" android:title="@string/twelve_hour_mode"/>
+ 			<item android:id="@+id/twenty_four_hour_mode" android:title="@string/twenty_four_hour_mode"/>
+ 		</menu>
+ 	</item>
+ 	<item android:id="@+id/date_mode" android:title="@string/date_mode">
+ 		<menu>
+ 			<item android:id="@+id/month_day_mode" android:title="@string/month_day_mode"/>
+ 			<item android:id="@+id/day_month_mode" android:title="@string/day_month_mode"/>
+ 		</menu>
+ 	</item>
 </menu>
+

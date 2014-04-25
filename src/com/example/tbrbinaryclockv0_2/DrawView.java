@@ -349,7 +349,7 @@ public class DrawView extends View
 	public void setYearsBlocks(Canvas canvas, int year)
 	{
 		int yearOnes = year%10;
-		int yearTens = year/10;
+		int yearTens = (year%100)/10;
 		
 		setTransparentTimeBlocks(years_1, yearOnes, canvas, 1);
 		setTransparentTimeBlocks(years_2, yearOnes, canvas, 2);
