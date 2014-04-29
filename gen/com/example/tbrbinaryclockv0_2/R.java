@@ -64,6 +64,8 @@ public final class R {
         public static final int date_center=0x7f07000c;
         public static final int date_mode=0x7f070013;
         public static final int day_month_mode=0x7f070015;
+        public static final int image_view_1=0x7f070019;
+        public static final int image_view_2=0x7f07001a;
         public static final int month_day_mode=0x7f070014;
         public static final int set_colors=0x7f070003;
         public static final int set_location=0x7f07000a;

@@ -9,8 +9,8 @@ public class TimeDateBlock
 	public final static int OVAL = CIRCLE + 1;
 	
 	int[] Center = {0,0};
-	int[] TimeBlockCenter = {0,0};
-	int[] DateBlockCenter = {0,0};
+	int[] TimeBlockCenter = {0,0};	// the time panel center
+	int[] DateBlockCenter = {0,0};	// the date panel center
 	int Height = 80;
 	int Width = 80;
 	int Border = 0;
@@ -32,8 +32,9 @@ public class TimeDateBlock
 	
 	public TimeDateBlock()	// this just 
 	{
-		//this.Center = Center;
-		//this.Shape = Shape;
+//		this.Center = Center;
+//		this.Shape = Shape;
+//		this.
 	}
 	
 	public int getShape()

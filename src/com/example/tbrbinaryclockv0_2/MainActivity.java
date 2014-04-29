@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.BufferedInputStream;
 
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.app.Activity;
 import android.content.Context;
@@ -32,70 +33,30 @@ public class MainActivity extends Activity
 	Context context;
   	Settings settings = new Settings();
   	Menu menu2;
-
-	public enum Menus
-	{
-		SETCOLORS(0),
-		SETSHAPES(1),
-		TIMEMODE(2),
-		DATEFORMAT(3),
-		QUIT(4);
-	
-		private int menu;
-
-	  Menus(int menu) 
-	  {
-	    this.menu = menu;
-	  }
-
-	  public int getMenu() { return menu;}
-	}
-
-//	private static enum SubMenus
-//	{
-//		SETCOLORS,
-//		TWELVE,
-//		TWENTYFOUR
-//	}
-
-  private final static int SETCOLORSMENU = 0;
-  private final static int SETSHAPESMENU = SETCOLORSMENU + 1;
-  private final static int SETLOCATIONMENU = SETSHAPESMENU + 1;
-  private final static int SETSIZESMENU = SETLOCATIONMENU + 1;
-  private final static int TIMEMODEMENU = SETSIZESMENU + 1;
-  private final static int DATEFORMATMENU = TIMEMODEMENU + 1;
-  private final static int QUITMENU = DATEFORMATMENU + 1;
-  
-  private final static int TWELVE = QUITMENU + 1;
-  private final static int TWENTYFOUR = TWELVE + 1;
-  private final static int DAYMONTH = TWENTYFOUR + 1;
-  private final static int MONTHDAY = DAYMONTH + 1;
-  private final static int RECTANGLE = MONTHDAY + 1;
-  private final static int CIRCLE = RECTANGLE + 1;
-  private final static int OVAL = CIRCLE + 1;
-  private final static int XSTART = OVAL + 1;
-  private final static int YSTART = XSTART + 1;
-  private final static int FULLSCREEN = YSTART + 1;
-  private final static int XSIZE = FULLSCREEN + 1;
-  private final static int YSIZE = XSIZE + 1;
-
-  Vibrator vibrator;
-  Menu menu;
-  
+  	Vibrator vibrator;
+  	Menu menu;
+  	PowerManager.WakeLock wl;
+  	
+	@SuppressWarnings("deprecation")
 	@Override
     protected void onCreate(Bundle savedInstanceState) 
     {
         super.onCreate(savedInstanceState);
-      	drawView = new DrawView(this);
+//        setContentView(R.layout.activity_main);
+      	drawView = new DrawView(this, settings);
         timer = new UpdateTime(drawView);
         tdBlock = new TimeDateBlock();
         timer.setupSchedule();
         setContentView(drawView);
-        drawView.setBkgdColor();
+        drawView.rollBkgdColor();
         context = this;
       	vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
-      	settings.GetSettings(context, drawView, tdBlock); 
-    }
+//      	settings.SetSettings(context, drawView, tdBlock);
+      	settings.GetSettings(context, drawView, tdBlock);       	
+//      	PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+//      	wl  = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "My Tag");
+//      	wl.acquire();
+      }
 
 	@Override
     protected void onPause() 
@@ -109,7 +70,7 @@ public class MainActivity extends Activity
 	{
 	  super.onStop();
 	  settings.SetSettings(context, drawView, tdBlock);
-	  
+//   	  wl.release();    
 	}
 	
 	@Override
@@ -154,30 +115,32 @@ public class MainActivity extends Activity
 	   		break;
 	   		
 	    	case R.id.SetShapeCircle:
-				drawView.timeDateBlocksDefaults.setShape(TimeDateBlock.CIRCLE);
+				drawView.timeDateBlock.setShape(TimeDateBlock.CIRCLE);
 				break;
 	    	
 	    	case R.id.SetShapeRectangle:
-				drawView.timeDateBlocksDefaults.setShape(TimeDateBlock.RECTANGLE);
+				drawView.timeDateBlock.setShape(TimeDateBlock.RECTANGLE);
 				break;
 	    	
 	    	case R.id.SetShapeOval:
-				drawView.timeDateBlocksDefaults.setShape(TimeDateBlock.OVAL);
+				drawView.timeDateBlock.setShape(TimeDateBlock.OVAL);
 				break;
 				
 	    	case R.id.SizeWidth:
+	    		timer.stopTimer();
 	    		break;
 	    		
 	    	case R.id.SizeHeight:
+	    		timer.startTimer();
 	    		break;
 	    		   	
-			case R.id.twelve24Mode:
-				drawView.timeDateBlocksDefaults.setAmPmMode(true);
+			case R.id.twelve_hour_mode:
+				drawView.timeDateBlock.setAmPmMode(true);
 				break;
 				
 			case R.id.twenty_four_hour_mode:
 			//case	TWENTYFOUR:
-				drawView.timeDateBlocksDefaults.setAmPmMode(false);
+				drawView.timeDateBlock.setAmPmMode(false);
 				break;
 				
 			case R.id.day_month_mode:
@@ -190,15 +153,20 @@ public class MainActivity extends Activity
        	}
     	return true;   	
     }
-    
-    private void quitApp()
+
+    public UpdateTime getTimer()
     {
-		// write the persistent settings to file
-    	//settings.WriteSettings(drawView, timer);
-    	Intent intent = new Intent(Intent.ACTION_MAIN);
-		intent.addCategory(Intent.CATEGORY_HOME);
-		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		startActivity(intent);
+    	return timer;
     }
+    
+//    private void quitApp()
+//    {
+//		// write the persistent settings to file
+//    	//settings.WriteSettings(drawView, timer);
+//    	Intent intent = new Intent(Intent.ACTION_MAIN);
+//		intent.addCategory(Intent.CATEGORY_HOME);
+//		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//		startActivity(intent);
+//    }
     
 }

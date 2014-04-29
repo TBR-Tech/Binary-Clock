@@ -26,5 +26,7 @@
     <string name="settings_bg_color_confirm">Confirm</string>
     <string name="settings_default_color_confirm">Default</string>
     <string name="settings_bg_color_dialog">BG</string>
-	
+    <string name="image_view_1">Image View 1</string>
+    <string name="image_view_2">Image View 2</string>
+    	
 </resources>
