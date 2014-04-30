@@ -27,7 +27,36 @@ import android.view.WindowManager;
 @SuppressLint({ "WrongCall", "SimpleDateFormat" }) 
 public class DrawView extends View 
 {
-    Paint paint = new Paint();
+	Rect timeBorderRect = new Rect();
+	Rect timeRect = new Rect();
+	Rect dateRect = new Rect();
+	Rect dateBorderRect = new Rect();
+
+	Rect[] secondsOnes = new Rect[4];
+	Rect[] secondsTens = new Rect[3];
+	Rect[] minutesOnes = new Rect[4];
+	Rect[] minutesTens = new Rect[3];
+	Rect[] hoursOnes = new Rect[4];
+	Rect[] hoursTens = new Rect[2];
+
+	Rect[] monthOnes = new Rect[4];
+	Rect monthTens = new Rect();
+	Rect[] dayOnes = new Rect[4];
+	Rect[] dayTens = new Rect[2];
+	Rect[] yearOnes = new Rect[4];
+	Rect[] yearTens = new Rect[4];
+
+	private int[] timeCenter = {-1,0};
+	private int[] timeBlockSize = {0,0};
+	private int[] dateCenter = {-1,0};
+	private int[] dateBlockSize = {0,0};
+
+	public int timeOnColor = 0xFFFF0000;  // red
+	public int timeOffColor = 0xFF0000FF; // blue
+	public int dateOnColor = 0xFFFF0000;  // red
+	public int dateOffColor = 0xFF0000FF; // blue
+
+	Paint paint = new Paint();
     Path path = new Path();
     Canvas canvas = new Canvas();
     Context context;
@@ -53,13 +82,18 @@ public class DrawView extends View
 	int TimeOnColor = 0x0000FF;
 	private int borderWidth = 10;
 	private int borderColor = 0xFF000000;
-	private int padding = 16;
-	
-	private int[] timeCenter = {100000,0};
-	private int[] timeBlockSize = {0,0};
-	private int[] dateCenter = {100000,0};
-	private int[] dateBlockSize = {0,0};
+	public int padding = 16;
 
+	int timeBlockWidth = 0;
+	int timeBlockHeight = 0;
+	int timeDisplayWidth = 0;
+	int timeDisplayHeight = 0;
+	
+	int dateBlockWidth = 0;
+	int dateBlockHeight = 0;
+	int dateDisplayWidth = 0;
+	int dateDisplayHeight = 0;
+	
 	UpdateTime updateTimeDefaults = new UpdateTime(this);
 	TimeDateBlock timeDateBlock = new TimeDateBlock();
 	Settings settings;
@@ -84,6 +118,7 @@ public class DrawView extends View
      paint.setStyle(Paint.Style.FILL);
      paint.setAntiAlias(true);     
      playSoundEffect (SoundEffectConstants.CLICK);
+
      setMode(MotionMode.DRAW_POLY);
      }
 
@@ -247,42 +282,330 @@ public class DrawView extends View
   }
 
   
-  private void initializeTimeBlock(int height, int width)
-  {
-	  int h = height;
-	  int w = width;
-	 
-//	  int h = getResources().getConfiguration().screenHeightDp;
-//	  int w = getResources().getConfiguration().screenWidthDp;
-	  int rotation = getScreenOrientation();
+//need a function for create by block size
+private void initializeTimeDisplay(int centerX, int centerY, int height, int width)
+{
+	int left = 0;
+	int right = 0;
+	int top = 0;
+	int startTop = 0;
+	int bottom = 0;
+	int startBottom = 0;
 
-	  if(rotation == ORIENTATION_PORTRAIT)
-	  {
-		  timeCenter[0] = width/2;
-		  timeCenter[1] = height/4;
-		  
-		  int timeBlockWidth = width - (2*(borderWidth + padding));
-		  timeBlockWidth -= timeBlockWidth % 6;
-		  
-		  int timeBlockHeight = (height/2) - (2*(borderWidth + padding));
-		  timeBlockHeight -= timeBlockHeight % 4;
-		  
-		  timeBlockSize[0] = timeBlockWidth;
-		  timeBlockSize[1] = timeBlockHeight;
-	  }
-	  else
-	  {
-		  timeCenter[0] = width/4;
-		  timeCenter[1] = height/2;
-	  }
-  
-  }
-  
-  private void initializeDateBlock(int height, int width)
-  {
-	  
-  }
-  
+	int h = height;
+	int w = width;
+	int rotation = getScreenOrientation();
+	
+	if(width == -1)	// set to default size
+	{
+		centerX = getWidth()/2;		
+		timeDisplayWidth = getWidth() - (2*(borderWidth + padding));
+		timeBlockWidth = timeDisplayWidth/6;
+	}
+	if(height == -1)	// set to default size
+	{
+		centerY = getHeight()/4;
+		timeDisplayHeight = (getHeight()/2) - (2*(borderWidth + padding));
+		timeBlockHeight = timeDisplayHeight/4;
+	}
+
+	timeCenter[0] = centerX;
+	timeCenter[1] = centerY;
+
+	if(rotation == ORIENTATION_PORTRAIT)
+	{
+		//timeBlockWidth = width - (2*(borderWidth + padding));
+		timeBlockWidth -= timeBlockWidth % 6;
+
+		//timeBlockHeight = (height/2) - (2*(borderWidth + padding));
+		timeBlockHeight -= timeBlockHeight % 4;
+
+		timeBlockSize[0] = timeBlockWidth;
+		timeBlockSize[1] = timeBlockHeight;
+	}
+	else
+	{
+		timeCenter[0] = width/4;
+		timeCenter[1] = height/2;
+	}
+
+	// set the borderBlock
+	left = timeCenter[0] - (width/2) - borderWidth;
+	right = timeCenter[0] + (width/2) + borderWidth;
+	top = timeCenter[1] - (height/2) - borderWidth;
+	bottom = timeCenter[1] + (height/2) + borderWidth;
+	timeBorderRect.set(left, top, right, bottom);
+
+	// set the timeRect
+	left = timeCenter[0] - (width/2);
+	right = timeCenter[0] + (width/2);
+	top = timeCenter[1] - (height/2);
+	bottom = timeCenter[1] + (height/2);
+	timeRect.set(left, top, right, bottom);
+
+	// now set the time unit locations
+	// set(l,t,r,b)
+	left = timeCenter[0] + (width/2) - timeBlockWidth;
+	right = timeCenter[0] + (width/2);
+	top = timeCenter[1] + (height/2) - timeBlockHeight;
+	startTop = top;
+	bottom = timeCenter[1] + (height/2);
+	startBottom = bottom;
+
+	for(int i=0;i<4;i++)
+	{
+		secondsOnes[i].set(left, top, right, bottom);
+		top += timeBlockHeight;
+		bottom += timeBlockHeight;
+	}
+
+	left -= timeBlockWidth;
+	right -= timeBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<3;i++)
+	{
+		secondsTens[i].set(left, top, right, bottom);
+		top += timeBlockHeight;
+		bottom += timeBlockHeight;
+	}
+
+	left -= timeBlockWidth;
+	right -= timeBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<4;i++)
+	{
+		minutesOnes[i].set(left, top, right, bottom);
+		top += timeBlockHeight;
+		bottom += timeBlockHeight;
+	}
+
+	left -= timeBlockWidth;
+	right -= timeBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<3;i++)
+	{
+		minutesTens[i].set(left, top, right, bottom);
+		top += timeBlockHeight;
+		bottom += timeBlockHeight;
+	}
+
+	left -= timeBlockWidth;
+	right -= timeBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<4;i++)
+	{
+		hoursOnes[i].set(left, top, right, bottom);
+		top += timeBlockHeight;
+		bottom += timeBlockHeight;
+	}
+
+	left -= timeBlockWidth;
+	right -= timeBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<2;i++)
+	{
+		hoursTens[i].set(left, top, right, bottom);
+		top += timeBlockHeight;
+		bottom += timeBlockHeight;
+	}
+}
+
+private void initializeDateDisplay(int centerX, int centerY, int height, int width)
+{
+	int left = 0;
+	int right = 0;
+	int top = 0;
+	int startTop = 0;
+	int bottom = 0;
+	int startBottom = 0;
+
+	int h = height;
+	int w = width;
+
+	int rotation = getScreenOrientation();
+
+	if(rotation == ORIENTATION_PORTRAIT)
+	{
+
+	}
+	else
+	{
+
+	}
+}
+public void updateTime(Canvas canvas, boolean twelve24Mode)
+{
+	int hours;
+
+	if((timeCenter[0] == -1) || (timeBlockSize[0] == 0))
+	  initializeTimeDisplay(-1,-1,-1,-1);
+	if((dateCenter[0] == -1) || (dateBlockSize[0] == 0))
+	  initializeDateDisplay(-1,-1,-1,-1);
+
+	Calendar rightNow = Calendar.getInstance();
+
+	if(timeDateBlock.isAmPmMode() == true)
+		hours = rightNow.get(Calendar.HOUR);
+	else
+		hours = rightNow.get(Calendar.HOUR_OF_DAY);
+	int minutes = rightNow.get(Calendar.MINUTE);
+	int seconds = rightNow.get(Calendar.SECOND);
+
+	showTime(canvas, hours, minutes, seconds);
+
+	int month = rightNow.get(Calendar.MONTH) + 1;
+	int day = rightNow.get(Calendar.DATE);
+	int year = rightNow.get(Calendar.YEAR)%100;
+
+	showDate(canvas, month, day, year);
+}
+
+private void showTime(Canvas canvas, int hours, int minutes, int seconds)
+{
+	Paint paint = new Paint();
+	paint.setColor(borderColor);
+	canvas.drawRect(timeBorderRect, paint);
+	paint.setColor(timeOffColor);
+	canvas.drawRect(timeRect, paint);
+	
+	Paint paintOnColor = new Paint();
+	paintOnColor.setColor(timeOnColor);
+	Paint paintOffColor = new Paint();
+	paintOffColor.setColor(timeOffColor);
+
+	for(int i=0;i<4;i++)
+	{
+		if((seconds & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		seconds >>= 1;
+		drawShape(canvas, secondsOnes[i], paint);
+	}
+	for(int i=0;i<3;i++)
+	{
+		if((seconds & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		seconds >>= 1;
+		drawShape(canvas, secondsTens[i], paint);
+	}
+	for(int i=0;i<4;i++)
+	{
+		if((minutes & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		minutes >>= 1;
+		drawShape(canvas, minutesOnes[i], paint);
+	}
+	for(int i=0;i<3;i++)
+	{
+		if((minutes & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		minutes >>= 1;
+		drawShape(canvas, minutesTens[i], paint);
+	}
+	for(int i=0;i<4;i++)
+	{
+		if((hours & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		hours >>= 1;
+		drawShape(canvas, hoursOnes[i], paint);
+	}
+	for(int i=0;i<2;i++)
+	{
+		if((hours & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		hours >>= 1;
+		drawShape(canvas, hoursTens[i], paint);
+	}
+}
+
+private void showDate(Canvas canvas, int month, int day, int year)
+{
+	Paint paint = new Paint();
+	paint.setColor(borderColor);
+	canvas.drawRect(dateBorderRect, paint);
+	paint.setColor(dateOffColor);
+	canvas.drawRect(dateRect, paint);
+
+	Paint paintOnColor = new Paint();
+	paintOnColor.setColor(dateOnColor);
+	Paint paintOffColor = new Paint();
+	paintOffColor.setColor(dateOffColor);
+
+	for(int i=0;i<4;i++)
+	{
+		if((month & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		month >>= 1;
+		drawShape(canvas, monthOnes[i], paint);
+	}
+
+	if(month >= 10)paint = paintOnColor;
+	else paint = paintOffColor;
+	drawShape(canvas, monthTens, paint);
+
+	for(int i=0;i<4;i++)
+	{
+		if((day & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		day >>= 1;
+		drawShape(canvas, dayOnes[i], paint);
+	}
+	for(int i=0;i<2;i++)
+	{
+		if((day & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		day >>= 1;
+		drawShape(canvas, dayTens[i], paint);
+	}
+	for(int i=0;i<4;i++)
+	{
+		if((year & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		year >>= 1;
+		drawShape(canvas, yearOnes[i], paint);
+	}
+	for(int i=0;i<4;i++)
+	{
+		if((year & 1) == 1) paint = paintOnColor;
+		else paint = paintOffColor;
+		year >>= 1;
+		drawShape(canvas, yearTens[i], paint);
+	}
+}
+
+private void drawShape(Canvas canvas, Rect rect, Paint paint)
+{
+	int shape = timeDateBlock.getShape();
+
+	switch(shape)
+	{
+		case TimeDateBlock.RECTANGLE:
+			canvas.drawRect(rect, paint);
+			break;
+
+		case TimeDateBlock.CIRCLE:
+			canvas.drawCircle(rect.centerX(), rect.centerY(), (timeBlockWidth > timeBlockHeight)?rect.height()/2:rect.width()/2, paint);
+			break;
+
+		case TimeDateBlock.OVAL:
+			RectF rectf = new RectF();
+			rectf.set(rect);
+			canvas.drawOval(rectf, paint);
+			break;
+
+			default:break;
+	}
+}  
+
   public int[] getTimeCenter()
   {
 	  return timeCenter;
@@ -318,78 +641,78 @@ public class DrawView extends View
   	updateTime(canvas, updateTimeDefaults.Get1224Mode());
   }
     
-  public void updateTime(Canvas canvas, boolean twelve24Mode)
-	{
-	  int hours;
-	  
-	  Calendar rightNow = Calendar.getInstance();
-	  
-	  if(timeDateBlock.isAmPmMode() == true)
-		  hours = rightNow.get(Calendar.HOUR);
-	  else
-		  hours = rightNow.get(Calendar.HOUR_OF_DAY);
-	  int minutes = rightNow.get(Calendar.MINUTE);
-	  int seconds = rightNow.get(Calendar.SECOND);
-	  
-	  int month = rightNow.get(Calendar.MONTH) + 1;
-	  int day = rightNow.get(Calendar.DATE);
-	  int year = rightNow.get(Calendar.YEAR)%100;
-	  
-	  int height = getHeight();
-	  int width = getWidth();
-	  
-	  if((height == 0) || (width == 0))
-		  return;
-		  
-	  if((timeCenter[0] == 100000) || (timeBlockSize[0] == 0))
-		  initializeTimeBlock(height,width);
-	  if((dateCenter[0] == 100000) || (dateBlockSize[0] == 0))
-		  initializeDateBlock(height,width);
-	  
-	  int timeLeft = timeCenter[0] - timeBlockSize[0]/2;
-	  int timeRight = timeCenter[0] + timeBlockSize[0]/2;
-	  int timeTop = timeCenter[1] - timeBlockSize[1]/2;
-	  int timeBottom = timeCenter[1] + timeBlockSize[1]/2;
-
-	  setSecondsBlocks(canvas, seconds);
-	  
-	  setMinutesBlocks(canvas, minutes);	  
-	  setHoursBlocks(canvas, hours);	  	
-
-	  if(dayMonthDisplayMode == true)
-	  {
-  	    setDaysBlocks(canvas, day);
-	    setMonthsBlocks(canvas, month);
-	  }
-	  else
-	  {
-	    setMonthsBlocks(canvas, month);
-		setDaysBlocks(canvas, day);
-	  }
-	  setYearsBlocks(canvas, year);	  
-	  String timerOrientation;
-		int rotation = getScreenOrientation();
-		if(rotation == ORIENTATION_PORTRAIT)
-		{
-			timerOrientation = "Portrait";
-		}
-		else
-		{
-			timerOrientation = "Landscape";
-		}
-		
-	  int color = 0xFF000000 | TimeBackgroundColor;
-
-	  paint.setColor(borderColor);
-	  
-	  paint.setTextSize(70);
-	  canvas.drawRect(timeLeft, timeTop, timeRight, timeBottom, paint);
-	  color = 0xFF000000 | TimeOnColor;
-	  paint.setColor(color);
-	  canvas.drawRect(timeLeft+borderWidth, timeTop+borderWidth, timeRight-borderWidth, timeBottom-borderWidth, paint);
-	  canvas.drawText(timerOrientation,  200, 200, paint);
-
-	}
+//  public void updateTime(Canvas canvas, boolean twelve24Mode)
+//	{
+//	  int hours;
+//	  
+//	  Calendar rightNow = Calendar.getInstance();
+//	  
+//	  if(timeDateBlock.isAmPmMode() == true)
+//		  hours = rightNow.get(Calendar.HOUR);
+//	  else
+//		  hours = rightNow.get(Calendar.HOUR_OF_DAY);
+//	  int minutes = rightNow.get(Calendar.MINUTE);
+//	  int seconds = rightNow.get(Calendar.SECOND);
+//	  
+//	  int month = rightNow.get(Calendar.MONTH) + 1;
+//	  int day = rightNow.get(Calendar.DATE);
+//	  int year = rightNow.get(Calendar.YEAR)%100;
+//	  
+//	  int height = getHeight();
+//	  int width = getWidth();
+//	  
+//	  if((height == 0) || (width == 0))
+//		  return;
+//		  
+//	  if((timeCenter[0] == 100000) || (timeBlockSize[0] == 0))
+//		  initializeTimeBlock(height,width);
+//	  if((dateCenter[0] == 100000) || (dateBlockSize[0] == 0))
+//		  initializeDateBlock(height,width);
+//	  
+//	  int timeLeft = timeCenter[0] - timeBlockSize[0]/2;
+//	  int timeRight = timeCenter[0] + timeBlockSize[0]/2;
+//	  int timeTop = timeCenter[1] - timeBlockSize[1]/2;
+//	  int timeBottom = timeCenter[1] + timeBlockSize[1]/2;
+//
+//	  setSecondsBlocks(canvas, seconds);
+//	  
+//	  setMinutesBlocks(canvas, minutes);	  
+//	  setHoursBlocks(canvas, hours);	  	
+//
+//	  if(dayMonthDisplayMode == true)
+//	  {
+//  	    setDaysBlocks(canvas, day);
+//	    setMonthsBlocks(canvas, month);
+//	  }
+//	  else
+//	  {
+//	    setMonthsBlocks(canvas, month);
+//		setDaysBlocks(canvas, day);
+//	  }
+//	  setYearsBlocks(canvas, year);	  
+//	  String timerOrientation;
+//		int rotation = getScreenOrientation();
+//		if(rotation == ORIENTATION_PORTRAIT)
+//		{
+//			timerOrientation = "Portrait";
+//		}
+//		else
+//		{
+//			timerOrientation = "Landscape";
+//		}
+//		
+//	  int color = 0xFF000000 | TimeBackgroundColor;
+//
+//	  paint.setColor(borderColor);
+//	  
+//	  paint.setTextSize(70);
+//	  canvas.drawRect(timeLeft, timeTop, timeRight, timeBottom, paint);
+//	  color = 0xFF000000 | TimeOnColor;
+//	  paint.setColor(color);
+//	  canvas.drawRect(timeLeft+borderWidth, timeTop+borderWidth, timeRight-borderWidth, timeBottom-borderWidth, paint);
+//	  canvas.drawText(timerOrientation,  200, 200, paint);
+//
+//	}
 	
 	private void setTimeBlocks(TimeDateBlock block, int time, Canvas canvas, int blockNumber)
 	{
