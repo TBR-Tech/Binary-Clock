@@ -1,10 +1,7 @@
 package com.example.tbrbinaryclockv0_2;
 
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import android.R.string;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -13,39 +10,95 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.support.v4.view.ViewCompat;
-import android.util.AttributeSet;
-import android.view.Display;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
-import android.view.Surface;
 import android.view.View;
-import android.view.WindowManager;
-//import android.text.format.Time;
 
 @SuppressLint({ "WrongCall", "SimpleDateFormat" }) 
 public class DrawView extends View 
 {
+//region Rectangles
 	Rect timeBorderRect = new Rect();
 	Rect timeRect = new Rect();
 	Rect dateRect = new Rect();
 	Rect dateBorderRect = new Rect();
 
-	Rect[] secondsOnes = new Rect[4];
-	Rect[] secondsTens = new Rect[3];
-	Rect[] minutesOnes = new Rect[4];
-	Rect[] minutesTens = new Rect[3];
-	Rect[] hoursOnes = new Rect[4];
-	Rect[] hoursTens = new Rect[2];
-
-	Rect[] monthOnes = new Rect[4];
-	Rect monthTens = new Rect();
-	Rect[] dayOnes = new Rect[4];
-	Rect[] dayTens = new Rect[2];
-	Rect[] yearOnes = new Rect[4];
-	Rect[] yearTens = new Rect[4];
-
+	Rect[] secondsOnes = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] secondsTens =
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] minutesOnes = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] minutesTens =
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] hoursOnes = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] hoursTens = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] monthOnes = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect monthTens = new Rect();	
+	Rect[] dayOnes = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] dayTens = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] yearOnes = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+	Rect[] yearTens = 
+	{
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+		new Rect(0,0,0,0),
+	};
+//endregion Rectangles
+	
 	private int[] timeCenter = {-1,0};
 	private int[] timeBlockSize = {0,0};
 	private int[] dateCenter = {-1,0};
@@ -94,20 +147,19 @@ public class DrawView extends View
 	int dateDisplayWidth = 0;
 	int dateDisplayHeight = 0;
 	
+	private int viewWidth = 0;
+	private int viewHeight = 0;
+
+
+	
 	UpdateTime updateTimeDefaults = new UpdateTime(this);
 	TimeDateBlock timeDateBlock = new TimeDateBlock();
 	Settings settings;
 	
 	private final int ORIENTATION_PORTRAIT = 1;
+	@SuppressWarnings("unused")
 	private final int ORIENTATION_LANDSCAPE = 2;
 
-	public enum MotionMode {
-		SELECT_AND_MOVE,
-		DRAW_POLY,
-		DRAW_OVAL,
-		DRAW_RECTANGLE
-	}
-	
   public DrawView(Context context, Settings settings) 
   {
      super(context);
@@ -119,30 +171,11 @@ public class DrawView extends View
      paint.setAntiAlias(true);     
      playSoundEffect (SoundEffectConstants.CLICK);
 
-     setMode(MotionMode.DRAW_POLY);
-     }
+     //setMode(MotionMode.DRAW_POLY);
+     setOnTouchListener(listener);     }
 
   
-    final OnTouchListener selectionAndMoveListener = new OnTouchListener() {
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
-          return false;
-      }
-  };
-  final OnTouchListener drawRectangleListener = new OnTouchListener() {
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
-          return false;
-      }
-  };
-  final OnTouchListener drawOvalListener = new OnTouchListener() {
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
-          return false;
-      }
-  };
-  
-  final OnTouchListener drawPolyLineListener = new OnTouchListener() {
+  final OnTouchListener listener = new OnTouchListener() {
       
       @Override
       public boolean onTouch(View v, MotionEvent event) 
@@ -198,10 +231,7 @@ public class DrawView extends View
           return true;
       }
       
-        /**
-         * Called when replaying history to ensure the dirty region includes all
-         * points.
-         */
+         // Called when replaying history to ensure the dirty region includes all points.
         private void expandDirtyRect(float historicalX, float historicalY) 
         {
           if (historicalX < dirtyRect.left) 
@@ -222,10 +252,9 @@ public class DrawView extends View
           }
         }
 
-        /**
-         * Resets the dirty region when the motion event occurs.
-         */
-        private void resetDirtyRect(float eventX, float eventY) {
+         //* Resets the dirty region when the motion event occurs.
+        private void resetDirtyRect(float eventX, float eventY) 
+        {
 
           // The lastTouchX and lastTouchY were set when the ACTION_DOWN
           // motion event occurred.
@@ -236,18 +265,6 @@ public class DrawView extends View
         }
   };
 
-  public DrawView(Context context, AttributeSet attrs) {
-      super(context, attrs);
-
-      paint.setAntiAlias(true);
-      paint.setColor(Color.WHITE);
-      paint.setStyle(Paint.Style.STROKE);
-      paint.setStrokeJoin(Paint.Join.ROUND);
-      paint.setStrokeWidth(STROKE_WIDTH);
-      
-      setMode(MotionMode.DRAW_POLY);
-  }
-  
   public void clear() {
       path.reset();
 
@@ -255,6 +272,10 @@ public class DrawView extends View
       invalidate();
   }
 
+<<<<<<< HEAD
+// if centerX,Y == -1, use h/w to get size
+// else use centerX,Y
+=======
   /**
    * Sets the DrawingView into one of several modes, such
    * as "select" mode (e.g., for moving or resizing objects), 
@@ -282,7 +303,12 @@ public class DrawView extends View
   }
 
   
-//need a function for create by block size
+//if centerX or centerY == -1, set at default location with size determined by height and width
+// if height or width == -1, set the location on centerx,y using default h/w
+<<<<<<< HEAD
+>>>>>>> FETCH_HEAD
+=======
+>>>>>>> FETCH_HEAD
 private void initializeTimeDisplay(int centerX, int centerY, int height, int width)
 {
 	int left = 0;
@@ -292,71 +318,128 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 	int bottom = 0;
 	int startBottom = 0;
 
-	int h = height;
-	int w = width;
-	int rotation = getScreenOrientation();
+	int orientation = getScreenOrientation();
 	
-	if(width == -1)	// set to default size
+	if((viewWidth == 0) || (viewHeight == 0))
 	{
-		centerX = getWidth()/2;		
-		timeDisplayWidth = getWidth() - (2*(borderWidth + padding));
-		timeBlockWidth = timeDisplayWidth/6;
+		while((viewWidth == 0) || (viewHeight == 0))
+		{
+			viewWidth = getWidth();
+			viewHeight = getHeight();
+		}
 	}
-	if(height == -1)	// set to default size
+	
+	if((width == -1) || (height == -1))	// set to size at x,y using h/w as big as possible
 	{
-		centerY = getHeight()/4;
-		timeDisplayHeight = (getHeight()/2) - (2*(borderWidth + padding));
-		timeBlockHeight = timeDisplayHeight/4;
-	}
+		if(orientation == ORIENTATION_PORTRAIT)
+		{
+			timeCenter[0] = centerX;
+			timeCenter[1] = centerY;
+			
+			if(centerX <= viewWidth/2)
+				timeDisplayWidth = (centerX - padding - borderWidth) * 2;
+			else
+				timeDisplayWidth = (viewWidth - centerX - padding - borderWidth) * 2;
+			
+			timeBlockWidth = (timeDisplayWidth/6) - (timeDisplayWidth%6);
 
-	timeCenter[0] = centerX;
-	timeCenter[1] = centerY;
+			if(centerY <= viewHeight/4)
+				timeDisplayHeight = (centerY - padding - borderWidth) * 2;
+			else
+				timeDisplayWidth = (viewHeight/2 - centerY - padding - borderWidth) * 2;
+			
+			timeBlockHeight = (timeDisplayHeight/4) - (timeDisplayHeight%4);
+		}
+		else	// landscape
+		{
+			timeCenter[0] = centerX;
+			timeCenter[1] = centerY;
+			
+			if(centerX <= getWidth()/4)
+				timeDisplayWidth = (centerX - padding - borderWidth) * 2;
+			else
+				timeDisplayWidth = (viewWidth - centerX - padding - borderWidth) * 2;
+			
+			timeBlockWidth = (timeDisplayWidth/6) - (timeDisplayWidth%6);
 
-	if(rotation == ORIENTATION_PORTRAIT)
+			if(centerY <= viewHeight/2)
+				timeDisplayHeight = (centerY - padding - borderWidth) * 2;
+			else
+				timeDisplayWidth = (viewHeight/2 - centerY - padding - borderWidth) * 2;
+			
+			timeBlockHeight = (timeDisplayHeight/4) - (timeDisplayHeight%4);
+		}
+		timeBlockSize[0] = timeBlockWidth;
+		timeBlockSize[1] = timeBlockWidth;
+	}	
+	else if((centerX == -1) || (centerY == -1))	// set to h/w at default center
 	{
-		//timeBlockWidth = width - (2*(borderWidth + padding));
-		timeBlockWidth -= timeBlockWidth % 6;
+		if(orientation == ORIENTATION_PORTRAIT)
+		{
+			timeCenter[0] = viewWidth/2;		
+			timeCenter[1] = viewHeight/4;
+			
+			if((width*6) > (viewWidth - (2*(padding + borderWidth))))
+				width = (viewWidth -  (2*(padding + borderWidth)))/6;
 
-		//timeBlockHeight = (height/2) - (2*(borderWidth + padding));
-		timeBlockHeight -= timeBlockHeight % 4;
+			timeDisplayWidth = width * 6;
+			timeBlockWidth = width;
 
+			if((height*4) > ((viewHeight/2) - (2*(padding + borderWidth))))
+				height = ((viewHeight/2) - (2*(padding + borderWidth)))/4;
+
+			timeDisplayHeight = height * 4;
+			timeBlockHeight = height;
+		}
+		else	// landscape
+		{
+			timeCenter[0] = viewWidth/4;		
+			timeCenter[1] = viewHeight/2;
+
+			if((width*6) > ((viewWidth/2) - (2*(padding + borderWidth))))
+				width = ((viewWidth/2) -  (2*(padding + borderWidth)))/6;
+
+			timeDisplayWidth = width * 6;
+			timeBlockWidth = width;
+
+			if((height*4) > (viewHeight - (2*(padding + borderWidth))))
+				height = (viewHeight - (2*(padding + borderWidth)))/4;
+
+			timeDisplayHeight = height * 4;
+			timeBlockHeight = height;
+		}		
 		timeBlockSize[0] = timeBlockWidth;
 		timeBlockSize[1] = timeBlockHeight;
 	}
-	else
-	{
-		timeCenter[0] = width/4;
-		timeCenter[1] = height/2;
-	}
 
 	// set the borderBlock
-	left = timeCenter[0] - (width/2) - borderWidth;
-	right = timeCenter[0] + (width/2) + borderWidth;
-	top = timeCenter[1] - (height/2) - borderWidth;
-	bottom = timeCenter[1] + (height/2) + borderWidth;
+	left = timeCenter[0] - (timeDisplayWidth/2) - borderWidth;
+	right = timeCenter[0] + (timeDisplayWidth/2) + borderWidth;
+	top = timeCenter[1] - (timeDisplayHeight/2) - borderWidth;
+	bottom = timeCenter[1] + (timeDisplayHeight/2) + borderWidth;
 	timeBorderRect.set(left, top, right, bottom);
 
 	// set the timeRect
-	left = timeCenter[0] - (width/2);
-	right = timeCenter[0] + (width/2);
-	top = timeCenter[1] - (height/2);
-	bottom = timeCenter[1] + (height/2);
+	left = timeCenter[0] - (timeDisplayWidth/2);
+	right = timeCenter[0] + (timeDisplayWidth/2);
+	top = timeCenter[1] - (timeDisplayHeight/2);
+	bottom = timeCenter[1] + (timeDisplayHeight/2);
 	timeRect.set(left, top, right, bottom);
 
 	// now set the time unit locations
 	// set(l,t,r,b)
-	left = timeCenter[0] + (width/2) - timeBlockWidth;
-	right = timeCenter[0] + (width/2);
-	top = timeCenter[1] + (height/2) - timeBlockHeight;
+	left = timeCenter[0] + (timeDisplayWidth/2) - timeBlockWidth;
+	right = timeCenter[0] + (timeDisplayWidth/2);
+	top = timeCenter[1] + (timeDisplayHeight/2) - timeBlockHeight;
 	startTop = top;
-	bottom = timeCenter[1] + (height/2);
+	bottom = timeCenter[1] + (timeDisplayHeight/2);
 	startBottom = bottom;
 
 	for(int i=0;i<4;i++)
 	{
 		secondsOnes[i].set(left, top, right, bottom);
-		top += timeBlockHeight;
-		bottom += timeBlockHeight;
+		top -= timeBlockHeight;
+		bottom -= timeBlockHeight;
 	}
 
 	left -= timeBlockWidth;
@@ -367,8 +450,8 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 	for(int i=0;i<3;i++)
 	{
 		secondsTens[i].set(left, top, right, bottom);
-		top += timeBlockHeight;
-		bottom += timeBlockHeight;
+		top -= timeBlockHeight;
+		bottom -= timeBlockHeight;
 	}
 
 	left -= timeBlockWidth;
@@ -379,8 +462,8 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 	for(int i=0;i<4;i++)
 	{
 		minutesOnes[i].set(left, top, right, bottom);
-		top += timeBlockHeight;
-		bottom += timeBlockHeight;
+		top -= timeBlockHeight;
+		bottom -= timeBlockHeight;
 	}
 
 	left -= timeBlockWidth;
@@ -391,8 +474,8 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 	for(int i=0;i<3;i++)
 	{
 		minutesTens[i].set(left, top, right, bottom);
-		top += timeBlockHeight;
-		bottom += timeBlockHeight;
+		top -= timeBlockHeight;
+		bottom -= timeBlockHeight;
 	}
 
 	left -= timeBlockWidth;
@@ -403,8 +486,8 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 	for(int i=0;i<4;i++)
 	{
 		hoursOnes[i].set(left, top, right, bottom);
-		top += timeBlockHeight;
-		bottom += timeBlockHeight;
+		top -= timeBlockHeight;
+		bottom -= timeBlockHeight;
 	}
 
 	left -= timeBlockWidth;
@@ -415,8 +498,8 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 	for(int i=0;i<2;i++)
 	{
 		hoursTens[i].set(left, top, right, bottom);
-		top += timeBlockHeight;
-		bottom += timeBlockHeight;
+		top -= timeBlockHeight;
+		bottom -= timeBlockHeight;
 	}
 }
 
@@ -447,10 +530,15 @@ public void updateTime(Canvas canvas, boolean twelve24Mode)
 {
 	int hours;
 
+	
+	
+	viewWidth = getWidth();
+	viewHeight = getHeight();
+
 	if((timeCenter[0] == -1) || (timeBlockSize[0] == 0))
-	  initializeTimeDisplay(-1,-1,-1,-1);
+	  initializeTimeDisplay(-1,-1,80,80);
 	if((dateCenter[0] == -1) || (dateBlockSize[0] == 0))
-	  initializeDateDisplay(-1,-1,-1,-1);
+	  initializeDateDisplay(-1,-1,80,80);
 
 	Calendar rightNow = Calendar.getInstance();
 
@@ -467,7 +555,7 @@ public void updateTime(Canvas canvas, boolean twelve24Mode)
 	int day = rightNow.get(Calendar.DATE);
 	int year = rightNow.get(Calendar.YEAR)%100;
 
-	showDate(canvas, month, day, year);
+	//showDate(canvas, month, day, year);
 }
 
 private void showTime(Canvas canvas, int hours, int minutes, int seconds)
@@ -482,47 +570,54 @@ private void showTime(Canvas canvas, int hours, int minutes, int seconds)
 	paintOnColor.setColor(timeOnColor);
 	Paint paintOffColor = new Paint();
 	paintOffColor.setColor(timeOffColor);
+	
+	int secondOnes = seconds%10;
+	int secondTens = seconds/10;
+	int minuteOnes = minutes%10;
+	int minuteTens = minutes/10;
+	int hourOnes = hours%10;
+	int hourTens = hours/10;
 
 	for(int i=0;i<4;i++)
 	{
-		if((seconds & 1) == 1) paint = paintOnColor;
+		if((secondOnes & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		seconds >>= 1;
+		secondOnes >>= 1;
 		drawShape(canvas, secondsOnes[i], paint);
 	}
 	for(int i=0;i<3;i++)
 	{
-		if((seconds & 1) == 1) paint = paintOnColor;
+		if((secondTens & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		seconds >>= 1;
+		secondTens >>= 1;
 		drawShape(canvas, secondsTens[i], paint);
 	}
 	for(int i=0;i<4;i++)
 	{
-		if((minutes & 1) == 1) paint = paintOnColor;
+		if((minuteOnes & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		minutes >>= 1;
+		minuteOnes >>= 1;
 		drawShape(canvas, minutesOnes[i], paint);
 	}
 	for(int i=0;i<3;i++)
 	{
-		if((minutes & 1) == 1) paint = paintOnColor;
+		if((minuteTens & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		minutes >>= 1;
+		minuteTens >>= 1;
 		drawShape(canvas, minutesTens[i], paint);
 	}
 	for(int i=0;i<4;i++)
 	{
-		if((hours & 1) == 1) paint = paintOnColor;
+		if((hourOnes & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		hours >>= 1;
+		hourOnes >>= 1;
 		drawShape(canvas, hoursOnes[i], paint);
 	}
 	for(int i=0;i<2;i++)
 	{
-		if((hours & 1) == 1) paint = paintOnColor;
+		if((hourTens & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		hours >>= 1;
+		hourTens >>= 1;
 		drawShape(canvas, hoursTens[i], paint);
 	}
 }
@@ -958,7 +1053,7 @@ private void drawShape(Canvas canvas, Rect rect, Paint paint)
 	
 	public void rollBkgdColor()
 	{	
-		int relativeChange = 255;
+		int relativeChange = 5;
 			
 	  	if(redActive)
 		{

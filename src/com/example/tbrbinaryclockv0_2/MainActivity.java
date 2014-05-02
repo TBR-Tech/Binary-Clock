@@ -21,7 +21,7 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 //import android.widget.TextView;
 import android.widget.Toast;
-import android.graphics.Canvas;
+//import android.graphics.Canvas;
 //import android.graphics.Color;
 
 public class MainActivity extends Activity 
@@ -29,7 +29,7 @@ public class MainActivity extends Activity
 	DrawView drawView;
 	UpdateTime timer;
 	TimeDateBlock tdBlock;
-	Canvas canvas;
+//	Canvas canvas;
 	Context context;
   	Settings settings = new Settings();
   	Menu menu2;
