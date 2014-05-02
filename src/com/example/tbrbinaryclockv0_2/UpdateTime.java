@@ -14,12 +14,14 @@ public class UpdateTime
 	Canvas canvas;
 	long counter = 0;
 	boolean twelve24Mode = false;	// 12/24 = 0/1
-
+	Timer timer = new Timer(); 
+	static boolean TimerIsStopped = false;
+	
 	public UpdateTime(DrawView draw)
-  {
+    {
 		drawing = draw;
 		canvas = drawing.getCanvas();
-  }
+    }
 
 	//public void setupSchedule(DrawView viewDrawer)
 	public void setupSchedule()
@@ -28,20 +30,23 @@ public class UpdateTime
 		//final UpdateBackground drawBackground = new UpdateBackground();
 		//drawing = viewDrawer;
     //DrawView drawView;
-		Timer timer = new Timer(); 
+//		Timer timer = new Timer(); 
     timer.schedule(new TimerTask() 
     {
     	@Override
     	public void run() 
     	{
-    		drawing.postInvalidate();
-    		counter++;
-    		if(counter == (10000/PERIOD))
+    		if(!TimerIsStopped)
     		{
-    			drawing.setBkgdColor();
-      			drawing.updateTime(canvas, twelve24Mode);   			
-      			drawing.draw(canvas);
-      			counter = 0;
+	    		drawing.postInvalidate();
+	    		counter++;
+	    		if(counter == (1000/PERIOD))
+	    		{
+	    			drawing.rollBkgdColor();
+	      			drawing.updateTime(canvas, twelve24Mode);   			
+	      			drawing.draw(canvas);
+	      			counter = 0;
+	    		}
     		}
 //    		drawing.draw(canvas);
     	}    	
@@ -71,5 +76,20 @@ public class UpdateTime
 	public boolean Get1224Mode()
 	{
 		return twelve24Mode;
+	}
+	
+	public boolean isTimerStopped()
+	{
+		return TimerIsStopped; 
+	}
+	
+	public void stopTimer()
+	{
+		TimerIsStopped = true;
+	}
+	
+	public void startTimer()
+	{
+		TimerIsStopped = false;
 	}
 }

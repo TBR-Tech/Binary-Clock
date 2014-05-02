@@ -4,6 +4,29 @@
     <string name="app_name">Binary Clock v0.2</string>
     <string name="title">Binary Clock v0.2</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
-
+    <string name="set_colors">Set Colors</string>
+    <string name="set_on_color">Set On Color</string>
+    <string name="set_off_color">Off Color</string>
+    <string name="set_shape">Set Shape</string>
+    <string name="shape_circle">Circle</string>
+    <string name="shape_rectangle">Rectangle</string>
+    <string name="shape_oval">Oval</string>
+    <string name="set_location">Set Location</string>
+    <string name="time_center">Time Center Location</string>
+    <string name="date_center">Date Center Location</string>
+    <string name="set_sizes">Set Size</string>
+    <string name="set_size_width">Set Width</string>
+    <string name="set_size_height">Set Height</string>
+    <string name="twelve_24_mode">12/24 Hour Mode</string>
+    <string name="twelve_hour_mode">AM/PM Mode</string>
+    <string name="twenty_four_hour_mode">24 Hour Mode</string>
+    <string name="date_mode">Date Mode</string>
+    <string name="month_day_mode">Month Day Mode</string>
+    <string name="day_month_mode">Day Month Mode</string>
+    <string name="settings_bg_color_confirm">Confirm</string>
+    <string name="settings_default_color_confirm">Default</string>
+    <string name="settings_bg_color_dialog">BG</string>
+    <string name="image_view_1">Image View 1</string>
+    <string name="image_view_2">Image View 2</string>
+    	
 </resources>
