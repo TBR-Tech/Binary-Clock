@@ -305,13 +305,6 @@ public class DrawView extends View
   
 //if centerX or centerY == -1, set at default location with size determined by height and width
 // if height or width == -1, set the location on centerx,y using default h/w
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> FETCH_HEAD
-=======
->>>>>>> FETCH_HEAD
-=======
->>>>>>> FETCH_HEAD
 private void initializeTimeDisplay(int centerX, int centerY, int height, int width)
 {
 	int left = 0;
