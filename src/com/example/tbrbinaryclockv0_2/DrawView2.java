@@ -207,7 +207,7 @@ public class DrawView extends View
           int bottom = 0;
 
           switch (event.getAction()) 
-          {
+          { 
             case MotionEvent.ACTION_DOWN:
               startX = eventX;
               startY = eventY;
