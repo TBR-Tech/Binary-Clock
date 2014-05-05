@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.BufferedInputStream;
 
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -19,17 +18,14 @@ import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
-//import android.widget.TextView;
+import android.widget.NumberPicker;
+import android.widget.Spinner;
 import android.widget.Toast;
-//import android.graphics.Canvas;
-//import android.graphics.Color;
 
 public class MainActivity extends Activity 
 {
 	DrawView drawView;
 	UpdateTime timer;
-	TimeDateBlock tdBlock;
-//	Canvas canvas;
 	Context context;
   	Settings settings = new Settings();
   	Menu menu2;
@@ -42,34 +38,28 @@ public class MainActivity extends Activity
     protected void onCreate(Bundle savedInstanceState) 
     {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
       	drawView = new DrawView(this, settings);
         timer = new UpdateTime(drawView);
-        tdBlock = new TimeDateBlock();
         timer.setupSchedule();
         setContentView(drawView);
         drawView.rollBkgdColor();
         context = this;
       	vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
-//      	settings.SetSettings(context, drawView, tdBlock);
-      	settings.GetSettings(context, drawView, tdBlock);       	
-//      	PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-//      	wl  = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "My Tag");
-//      	wl.acquire();
+      	settings.GetSettings(context, drawView);       	
       }
 
 	@Override
     protected void onPause() 
 	{
 	  super.onPause();
-	  settings.SetSettings(context, drawView, tdBlock);	  
+	  settings.SetSettings(context, drawView);	  
 	}
 	
 	@Override
     protected void onStop() 
 	{
 	  super.onStop();
-	  settings.SetSettings(context, drawView, tdBlock);
+	  settings.SetSettings(context, drawView);
 //   	  wl.release();    
 	}
 	
@@ -77,7 +67,7 @@ public class MainActivity extends Activity
 	protected void onResume()
 	{
 		super.onResume();
-		settings.GetSettings(context, drawView, tdBlock);
+		settings.GetSettings(context, drawView);
 	}
 	
 	@Override
@@ -115,40 +105,70 @@ public class MainActivity extends Activity
 	   		break;
 	   		
 	    	case R.id.SetShapeCircle:
-				drawView.timeDateBlock.setShape(TimeDateBlock.CIRCLE);
+				drawView.setShape(drawView.CIRCLE);
 				break;
 	    	
 	    	case R.id.SetShapeRectangle:
-				drawView.timeDateBlock.setShape(TimeDateBlock.RECTANGLE);
+				drawView.setShape(drawView.RECTANGLE);
 				break;
 	    	
 	    	case R.id.SetShapeOval:
-				drawView.timeDateBlock.setShape(TimeDateBlock.OVAL);
+				drawView.setShape(drawView.OVAL);
+				break;
+
+	    	case R.id.SetShapeTriangleUp:
+				drawView.setShape(drawView.TRIANGLE_UP);
 				break;
 				
-	    	case R.id.SizeWidth:
-	    		timer.stopTimer();
+	    	case R.id.SetShapeTriangleDown:
+				drawView.setShape(drawView.TRIANGLE_DOWN);
+				break;
+				
+	    	case R.id.SetShapeTriangleLeft:
+				drawView.setShape(drawView.TRIANGLE_LEFT);
+				break;
+				
+	    	case R.id.SetShapeTriangleRight:
+				drawView.setShape(drawView.TRIANGLE_RIGHT);
+				break;
+				
+	    	case R.id.TimeSizeWidth:
+	    		// open numeric spinner
+	    		// return value is new width
+	    		NumberPicker timeBlockWidthPicker = new NumberPicker(this);
+	    		int width = timeBlockWidthPicker.getValue();
+	    		drawView.setTimeBlockWidth(width);
 	    		break;
 	    		
-	    	case R.id.SizeHeight:
-	    		timer.startTimer();
-	    		break;
-	    		   	
+	    	case R.id.TimeSizeHeight:
+//	    		drawView.setTimeBlockHeight(height);
+//	    		break;
+//	    		   	
+//	    	case R.id.DateSizeWidth:
+//	    		// open numeric spinner
+//	    		// return value is new width
+//	    		drawView.setDateBlockWidth(width);
+//	    		break;
+//	    		
+//	    	case R.id.DateSizeHeight:
+//	    		drawView.setDateBlockHeight(height);
+//	    		break;
+//	    		   	
 			case R.id.twelve_hour_mode:
-				drawView.timeDateBlock.setAmPmMode(true);
+				drawView.setAmPmMode(true);
 				break;
 				
 			case R.id.twenty_four_hour_mode:
 			//case	TWENTYFOUR:
-				drawView.timeDateBlock.setAmPmMode(false);
+				drawView.setAmPmMode(false);
 				break;
 				
 			case R.id.day_month_mode:
-				tdBlock.setDayMonthDisplayMode(true);
+				drawView.setMonthDayMode(false);
 				break;
 				
 			case R.id.month_day_mode:
-				tdBlock.setDayMonthDisplayMode(false);
+				drawView.setMonthDayMode(true);
 				break;
        	}
     	return true;   	

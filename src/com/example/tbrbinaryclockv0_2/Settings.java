@@ -1,18 +1,7 @@
 package com.example.tbrbinaryclockv0_2;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.BufferedInputStream;
-import java.io.OutputStream;
-
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Environment;
 
 public class Settings 
 {
@@ -27,19 +16,19 @@ public class Settings
 		;
 	}
 	
-	public void SetSettings(Context context, DrawView drawView, TimeDateBlock tdBlock)
+	public void SetSettings(Context context, DrawView drawView)
 	{
-//		TimeDateBlock tdBlock = new TimeDateBlock();
 		TimeDateBlock dvtdb = drawView.timeDateBlock;
 		
 		settings = context.getSharedPreferences(PREFS_NAME, 0);
 		editor = settings.edit();
 		
 		//Boolean mode = dvtdb.isAmPmMode();
-		editor.putBoolean("amPmMode", dvtdb.isAmPmMode());
+		editor.putBoolean("amPmMode", drawView.getAmPmMode());
 		editor.putInt("OnColor",  drawView.getTimeOnColor());
 		editor.putInt("OffColor",  drawView.getTimeOffColor());
-		editor.putInt("Shape", dvtdb.getShape());
+		editor.putInt("Shape", drawView.getShape());
+		editor.putInt("BackgroundColor", drawView.getBackgroundColor());
 		
 		int[] t = drawView.getTimeCenter();
 		editor.putInt("TimeCenterX", t[0]);
@@ -48,14 +37,13 @@ public class Settings
 		editor.commit();
 	}
 	
-	public void GetSettings(Context context, DrawView drawView, TimeDateBlock tdBlock)
+	public void GetSettings(Context context, DrawView drawView)
 	{
-		TimeDateBlock dvtdb = drawView.timeDateBlock;
 		int[] timeCenter = {0,0};
 		
 		settings = context.getSharedPreferences(PREFS_NAME, 0);
-		Boolean mode = settings.getBoolean("amPmMode",  dvtdb.isAmPmMode());
-		dvtdb.setAmPmMode(mode);
+		
+		drawView.setAmPmMode(settings.getBoolean("amPmMode",  drawView.getAmPmMode()));
 		int onColor = settings.getInt("OnColor", -1 ^ 0xFF000000);
 		int offColor = settings.getInt("OffColor", -1);
 		timeCenter[0] = settings.getInt("TimeCenterX",  100000);
@@ -64,7 +52,8 @@ public class Settings
 		//drawView.setTimeOnColor(onColor);
 		//drawView.setTimeOffColor(offColor);
 		//dvtdb.SetOffColor(offColor);
-		dvtdb.setShape(settings.getInt("Shape", TimeDateBlock.CIRCLE));
+		drawView.setShape(settings.getInt("Shape", drawView.CIRCLE));
+		drawView.setBackgroundColor(settings.getInt("BackgroundColor", 0xFF000000));
 		
 //	  	  int height = drawView.getCanvas().getHeight();
 //	  	  int width = drawView.getCanvas().getWidth();

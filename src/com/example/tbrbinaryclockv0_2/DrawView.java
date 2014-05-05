@@ -7,9 +7,12 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.support.v4.view.ViewCompat;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
 import android.view.View;
@@ -119,17 +122,11 @@ public class DrawView extends View
 	static boolean redActive = true;
 	static boolean greenActive = false;
 	static boolean blueActive = false;
-	private static final float STROKE_WIDTH = 5f;
-	private static final float HALF_STROKE_WIDTH = STROKE_WIDTH/2;
 
-	boolean dayMonthDisplayMode = false;	// true = day/month, false = month/day
+	boolean monthDayDisplayMode = true;	// true = day/month, false = month/day
 	boolean amPmMode = false;				// true = 12 hour, false = 24 hour
 	boolean TimerIsStopped = false;
 	
-	private float lastTouchX;
-	private float lastTouchY;
-	private final RectF dirtyRect = new RectF();
-
 	int backgroundColor = 0;
 	int TimeBackgroundColor = 0xFF0000;
 	int TimeOnColor = 0x0000FF;
@@ -149,8 +146,6 @@ public class DrawView extends View
 	
 	private int viewWidth = 0;
 	private int viewHeight = 0;
-
-
 	
 	UpdateTime updateTimeDefaults = new UpdateTime(this);
 	TimeDateBlock timeDateBlock = new TimeDateBlock();
@@ -159,6 +154,19 @@ public class DrawView extends View
 	private final int ORIENTATION_PORTRAIT = 1;
 	@SuppressWarnings("unused")
 	private final int ORIENTATION_LANDSCAPE = 2;
+	int orientation = ORIENTATION_PORTRAIT;
+	
+	public final int RECTANGLE = 0;
+	public final int CIRCLE = 1;
+	public final int OVAL = 2;
+	public final int TRIANGLE_UP = 3;
+	public final int TRIANGLE_DOWN = 4;
+	public final int TRIANGLE_LEFT = 5;
+	public final int TRIANGLE_RIGHT = 6;
+	
+	private int shape = CIRCLE;
+	
+	UpdateTime timer;
 
   public DrawView(Context context, Settings settings) 
   {
@@ -169,13 +177,21 @@ public class DrawView extends View
      paint.setColor(Color.GREEN);
      paint.setStyle(Paint.Style.FILL);
      paint.setAntiAlias(true);     
+     this.setSoundEffectsEnabled(true);
      playSoundEffect (SoundEffectConstants.CLICK);
 
      //setMode(MotionMode.DRAW_POLY);
-     setOnTouchListener(listener);     }
+     setOnTouchListener(listener);   
+     
+}
 
-  
-  final OnTouchListener listener = new OnTouchListener() {
+  final OnTouchListener listener = new OnTouchListener() 
+  {
+      boolean movingTimeBlock = false;
+      boolean movingDateBlock = false;
+      float startX = 0;
+      float startY = 0;
+      final int MOVE_TOLERANCE = 1;
       
       @Override
       public boolean onTouch(View v, MotionEvent event) 
@@ -183,98 +199,92 @@ public class DrawView extends View
           // Log.d("jabagator", "onTouch: " + event);
           float eventX = event.getX();
           float eventY = event.getY();
+          float dx = 0;
+          float dy = 0;
+          int left = 0;
+          int right = 0;
+          int top = 0;
+          int bottom = 0;
 
           switch (event.getAction()) 
           {
             case MotionEvent.ACTION_DOWN:
-              path.moveTo(eventX, eventY);
-              lastTouchX = eventX;
-              lastTouchY = eventY;
+              startX = eventX;
+              startY = eventY;
+              if((timeRect.left <= eventX) && (timeRect.right > eventX) &&
+            	 (timeRect.top <= eventY) && (timeRect.bottom > eventY))
+        	  {
+        	  	movingTimeBlock = true;
+        	  }
               // There is no end point yet, so don't waste cycles invalidating.
               return true;
 
-            case MotionEvent.ACTION_MOVE:
-            case MotionEvent.ACTION_UP:
-              // Start tracking the dirty region.
-              resetDirtyRect(eventX, eventY);
-
-              // When the hardware tracks events faster than they are delivered, the
-              // event will contain a history of those skipped points.
-              int historySize = event.getHistorySize();
-              for (int i = 0; i < historySize; i++) 
-              {
-                float historicalX = event.getHistoricalX(i);
-                float historicalY = event.getHistoricalY(i);
-                expandDirtyRect(historicalX, historicalY);
-                path.lineTo(historicalX, historicalY);
-              }
-
-              // After replaying history, connect the line to the touch point.
-              path.lineTo(eventX, eventY);
-              break;
-
-            default:
-              //Log.d("jabagator", "Unknown touch event  " + event.toString());
-              return false;
+           case MotionEvent.ACTION_UP:
+        	   {
+        		   movingTimeBlock = false;
+        	   }
+        	   break;
+        	   
+           case MotionEvent.ACTION_MOVE:
+    		   dx = startX - eventX;
+    		   dy = startY - eventY;
+    		   int moveWidth = 0;
+    		   int moveHeight = 0;
+    		   moveWidth = getWidth();
+    		   moveHeight = getHeight();
+    		   
+    		   if((Math.abs(dx) > MOVE_TOLERANCE) || (Math.abs(dy) > MOVE_TOLERANCE))
+    		   {
+        		   startX = eventX;
+        		   startY = eventY;
+	           	   if(movingTimeBlock == true)
+	        	   {
+	        		   if(((timeBorderRect.left + (int)dx) >= 0) &&
+	        		      ((timeBorderRect.top - (int)dy) >= 0 ) &&
+	        		      ((timeBorderRect.right + (int)dx) <= moveWidth) &&
+	        		      ((timeBorderRect.bottom + (int)dy) <= moveHeight/2))
+	        		   {
+	        			   left = timeBorderRect.left + (int)dx;
+	        			   //right = timeBorderRect.right + (int)dx;
+	        			   top = timeBorderRect.top + (int)dy;
+	        			   //bottom = timeBorderRect.bottom + (int)dy;
+	        			   
+	        			   initializeTimeDisplay(left+timeDisplayWidth/2, top+timeDisplayHeight/2, timeBlockHeight, timeBlockWidth);
+	        		   }
+//	        		   else
+//	        		   {
+//	        			   left = (timeBorderRect.left - (int)dx) >= 0?timeBorderRect.left - (int)dx:0;
+//	        			   top = (timeBorderRect.top - (int)dx) >= 0?timeBorderRect.top - (int)dx:0;
+//	        			   right = 0;
+//	        			   bottom = 0;
+//	        			   if(orientation == ORIENTATION_PORTRAIT)
+//	        			   {
+//	            			   right = (timeBorderRect.right + (int)dx) >= 0?timeBorderRect.right - (int)dx:getWidth();
+//	            			   bottom = (timeBorderRect.bottom - (int)dx) >= 0?timeBorderRect.bottom - (int)dx:getHeight()/2;
+//	        			   }
+//	        			   else
+//	        			   {
+//	            			   right = (timeBorderRect.right + (int)dx) >= 0?timeBorderRect.right - (int)dx:getWidth()/2;
+//	            			   bottom = (timeBorderRect.bottom - (int)dx) >= 0?timeBorderRect.bottom - (int)dx:getHeight();
+//	        			   }
+//	        			   initializeTimeDisplay((left+right)/2, (top+bottom)/2, timeBlockHeight, timeBlockWidth);
+//	        		   }
+	        	   }
+	        	   else if(movingDateBlock == true)
+	        	   {
+	        		   
+	        	   }
+    		   }
           }
-
-          // Include half the stroke width to avoid clipping.
-          invalidate(
-              (int) (dirtyRect.left - HALF_STROKE_WIDTH),
-              (int) (dirtyRect.top - HALF_STROKE_WIDTH),
-              (int) (dirtyRect.right + HALF_STROKE_WIDTH),
-              (int) (dirtyRect.bottom + HALF_STROKE_WIDTH));
-          
-          lastTouchX = eventX;
-          lastTouchY = eventY;
-
-          return true;
+ 	      invalidate();
+    	  return true;
       }
-      
-         // Called when replaying history to ensure the dirty region includes all points.
-        private void expandDirtyRect(float historicalX, float historicalY) 
-        {
-          if (historicalX < dirtyRect.left) 
-          {
-            dirtyRect.left = historicalX;
-          } 
-          else if (historicalX > dirtyRect.right) 
-          {
-            dirtyRect.right = historicalX;
-          }
-          if (historicalY < dirtyRect.top) 
-          {
-            dirtyRect.top = historicalY;
-          } 
-          else if (historicalY > dirtyRect.bottom) 
-          {
-            dirtyRect.bottom = historicalY;
-          }
-        }
-
-         //* Resets the dirty region when the motion event occurs.
-        private void resetDirtyRect(float eventX, float eventY) 
-        {
-
-          // The lastTouchX and lastTouchY were set when the ACTION_DOWN
-          // motion event occurred.
-          dirtyRect.left = Math.min(lastTouchX, eventX);
-          dirtyRect.right = Math.max(lastTouchX, eventX);
-          dirtyRect.top = Math.min(lastTouchY, eventY);
-          dirtyRect.bottom = Math.max(lastTouchY, eventY);
-        }
   };
 
-  public void clear() {
-      path.reset();
-
-      // Repaints the entire view.
-      invalidate();
-  }
-
-<<<<<<< HEAD
 // if centerX,Y == -1, use h/w to get size
 // else use centerX,Y
+<<<<<<< HEAD
+=======
 =======
   /**
    * Sets the DrawingView into one of several modes, such
@@ -314,7 +324,7 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 	int bottom = 0;
 	int startBottom = 0;
 
-	int orientation = getScreenOrientation();
+	orientation = getScreenOrientation();
 	
 	if((viewWidth == 0) || (viewHeight == 0))
 	{
@@ -400,6 +410,43 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 
 			if((height*4) > (viewHeight - (2*(padding + borderWidth))))
 				height = (viewHeight - (2*(padding + borderWidth)))/4;
+
+			timeDisplayHeight = height * 4;
+			timeBlockHeight = height;
+		}		
+		timeBlockSize[0] = timeBlockWidth;
+		timeBlockSize[1] = timeBlockHeight;
+	}
+	else	// set x,y with w,h
+	{
+		timeCenter[0] = centerX;
+		timeCenter[1] = centerY;
+
+		if(orientation == ORIENTATION_PORTRAIT)
+		{
+			if((width*6) > (viewWidth - (2*(borderWidth))))
+				width = (viewWidth -  (2*(borderWidth)))/6;
+
+			timeDisplayWidth = width * 6;
+			timeBlockWidth = width;
+
+			if((height*4) > ((viewHeight/2) - (2*(borderWidth))))
+				height = ((viewHeight/2) - (2*(borderWidth)))/4;
+
+			timeDisplayHeight = height * 4;
+			timeBlockHeight = height;
+			
+		}
+		else
+		{
+			if((width*6) > ((viewWidth/2) - (2*(borderWidth))))
+				width = ((viewWidth/2) -  (2*(borderWidth)))/6;
+
+			timeDisplayWidth = width * 6;
+			timeBlockWidth = width;
+
+			if((height*4) > (viewHeight - (2*(borderWidth))))
+				height = (viewHeight - (2*(borderWidth)))/4;
 
 			timeDisplayHeight = height * 4;
 			timeBlockHeight = height;
@@ -508,40 +555,249 @@ private void initializeDateDisplay(int centerX, int centerY, int height, int wid
 	int bottom = 0;
 	int startBottom = 0;
 
-	int h = height;
-	int w = width;
-
-	int rotation = getScreenOrientation();
-
-	if(rotation == ORIENTATION_PORTRAIT)
+	int orientation = getScreenOrientation();
+	
+	if((viewWidth == 0) || (viewHeight == 0))
 	{
-
+		while((viewWidth == 0) || (viewHeight == 0))
+		{
+			viewWidth = getWidth();
+			viewHeight = getHeight();
+		}
 	}
-	else
+	
+	if((width == -1) || (height == -1))	// set to size at x,y using h/w as big as possible
 	{
+		if(orientation == ORIENTATION_PORTRAIT)
+		{
+			dateCenter[0] = centerX;
+			dateCenter[1] = centerY;
+			
+			if(centerX <= viewWidth/2)
+				dateDisplayWidth = (centerX - padding - borderWidth) * 2;
+			else
+				dateDisplayWidth = (viewWidth - centerX - padding - borderWidth) * 2;
+			
+			dateBlockWidth = (dateDisplayWidth/6) - (dateDisplayWidth%6);
 
+			if(centerY <= viewHeight/4)
+				dateDisplayHeight = (centerY - padding - borderWidth) * 2;
+			else
+				dateDisplayWidth = (viewHeight/2 - centerY - padding - borderWidth) * 2;
+			
+			dateBlockHeight = (dateDisplayHeight/4) - (dateDisplayHeight%4);
+		}
+		else	// landscape
+		{
+			dateCenter[0] = centerX;
+			dateCenter[1] = centerY;
+			
+			if(centerX <= getWidth()/4)
+				dateDisplayWidth = (centerX - padding - borderWidth) * 2;
+			else
+				dateDisplayWidth = (viewWidth - centerX - padding - borderWidth) * 2;
+			
+			dateBlockWidth = (dateDisplayWidth/6) - (dateDisplayWidth%6);
+
+			if(centerY <= viewHeight/2)
+				dateDisplayHeight = (centerY - padding - borderWidth) * 2;
+			else
+				dateDisplayWidth = (viewHeight/2 - centerY - padding - borderWidth) * 2;
+			
+			dateBlockHeight = (dateDisplayHeight/4) - (dateDisplayHeight%4);
+		}
+		dateBlockSize[0] = dateBlockWidth;
+		dateBlockSize[1] = dateBlockWidth;
+	}	
+	else if((centerX == -1) || (centerY == -1))	// set to h/w at default center
+	{
+		if(orientation == ORIENTATION_PORTRAIT)
+		{
+			dateCenter[0] = viewWidth/2;		
+			dateCenter[1] = (viewHeight*3)/4;
+			
+			if((width*6) > (viewWidth - (2*(padding + borderWidth))))
+				width = (viewWidth -  (2*(padding + borderWidth)))/6;
+
+			dateDisplayWidth = width * 6;
+			dateBlockWidth = width;
+
+			if((height*4) > ((viewHeight/2) - (2*(padding + borderWidth))))
+				height = ((viewHeight/2) - (2*(padding + borderWidth)))/4;
+
+			dateDisplayHeight = height * 4;
+			dateBlockHeight = height;
+		}
+		else	// landscape
+		{
+			dateCenter[0] = (viewWidth*3)/4;		
+			dateCenter[1] = viewHeight/2;
+
+			if((width*6) > ((viewWidth/2) - (2*(padding + borderWidth))))
+				width = ((viewWidth/2) -  (2*(padding + borderWidth)))/6;
+
+			dateDisplayWidth = width * 6;
+			dateBlockWidth = width;
+
+			if((height*4) > (viewHeight - (2*(padding + borderWidth))))
+				height = (viewHeight - (2*(padding + borderWidth)))/4;
+
+			dateDisplayHeight = height * 4;
+			dateBlockHeight = height;
+		}		
+		dateBlockSize[0] = timeBlockWidth;
+		dateBlockSize[1] = timeBlockHeight;
 	}
+	else	// set x,y with w,h
+	{
+		
+	}
+
+	// set the borderBlock
+	left = dateCenter[0] - (dateDisplayWidth/2) - borderWidth;
+	right = dateCenter[0] + (dateDisplayWidth/2) + borderWidth;
+	top = dateCenter[1] - (dateDisplayHeight/2) - borderWidth;
+	bottom = dateCenter[1] + (dateDisplayHeight/2) + borderWidth;
+	dateBorderRect.set(left, top, right, bottom);
+
+	// set the dateRect
+	left = dateCenter[0] - (dateDisplayWidth/2);
+	right = dateCenter[0] + (dateDisplayWidth/2);
+	top = dateCenter[1] - (dateDisplayHeight/2);
+	bottom = dateCenter[1] + (dateDisplayHeight/2);
+	dateRect.set(left, top, right, bottom);
+
+	// now set the date unit locations
+	// set(l,t,r,b)
+	left = dateCenter[0] + (dateDisplayWidth/2) - dateBlockWidth;
+	right = dateCenter[0] + (dateDisplayWidth/2);
+	top = dateCenter[1] + (dateDisplayHeight/2) - dateBlockHeight;
+	startTop = top;
+	bottom = dateCenter[1] + (dateDisplayHeight/2);
+	startBottom = bottom;
+
+	for(int i=0;i<4;i++)
+	{
+		yearOnes[i].set(left, top, right, bottom);
+		top -= dateBlockHeight;
+		bottom -= dateBlockHeight;
+	}
+
+	left -= dateBlockWidth;
+	right -= dateBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<4;i++)
+	{
+		yearTens[i].set(left, top, right, bottom);
+		top -= dateBlockHeight;
+		bottom -= dateBlockHeight;
+	}
+
+	left -= dateBlockWidth;
+	right -= dateBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<4;i++)
+	{
+		dayOnes[i].set(left, top, right, bottom);
+		top -= dateBlockHeight;
+		bottom -= dateBlockHeight;
+	}
+
+	left -= dateBlockWidth;
+	right -= dateBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<2;i++)
+	{
+		dayTens[i].set(left, top, right, bottom);
+		top -= dateBlockHeight;
+		bottom -= dateBlockHeight;
+	}
+
+	left -= dateBlockWidth;
+	right -= dateBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	for(int i=0;i<4;i++)
+	{
+		monthOnes[i].set(left, top, right, bottom);
+		top -= dateBlockHeight;
+		bottom -= dateBlockHeight;
+	}
+	
+	left -= dateBlockWidth;
+	right -= dateBlockWidth;
+	top = startTop;
+	bottom = startBottom;
+
+	monthTens.set(left, top, right, bottom);
+
 }
+
+	public void setMonthDayMode(boolean monthDayOrder)
+	{
+		if(monthDayOrder == monthDayDisplayMode)
+			return;
+		else
+		{
+			monthDayDisplayMode = monthDayOrder;
+			if(monthDayOrder == false) // new order is day/month
+			{
+				monthTens.set(dayTens[0]);
+				for(int i=0;i<4;i++)
+				{
+					monthOnes[i].set(dayOnes[i]);
+				}
+				dayTens[0].set(monthTens.left-(2*dateBlockWidth), monthTens.top, monthTens.right-(2*dateBlockWidth), monthTens.bottom);
+				dayTens[1].set(dayTens[0].left, dayTens[0].top-dateBlockHeight, dayTens[0].right, dayTens[0].bottom-dateBlockHeight);
+				dayOnes[0].set(dayTens[0].left+dateBlockWidth, dayTens[0].top, dayTens[0].right+dateBlockWidth, dayTens[0].bottom);
+				dayOnes[1].set(dayOnes[0].left, dayOnes[0].top-dateBlockHeight, dayOnes[0].right, dayOnes[0].bottom-dateBlockHeight);
+				dayOnes[2].set(dayOnes[1].left, dayOnes[1].top-dateBlockHeight, dayOnes[1].right, dayOnes[1].bottom-dateBlockHeight);
+				dayOnes[3].set(dayOnes[2].left, dayOnes[2].top-dateBlockHeight, dayOnes[2].right, dayOnes[2].bottom-dateBlockHeight);
+			}
+			else	// new order is month/day
+			{
+				dayTens[0].set(monthTens);
+				dayTens[1].set(monthTens.left, monthTens.top-dateBlockHeight, monthTens.right, monthTens.bottom-dateBlockHeight);
+				for(int i=0;i<4;i++)
+				{
+					dayOnes[i].set(monthOnes[i]);
+				}
+				monthTens.set(dayTens[0].left-(2*dateBlockWidth), dayTens[0].top, dayTens[0].right-(2*dateBlockWidth), dayTens[0].bottom);
+				monthOnes[0].set(monthTens.left+dateBlockWidth, monthTens.top, monthTens.right+dateBlockWidth, monthTens.bottom);
+				monthOnes[1].set(monthOnes[0].left, monthOnes[0].top-dateBlockHeight, monthOnes[0].right, monthOnes[0].bottom-dateBlockHeight);
+				monthOnes[2].set(monthOnes[1].left, monthOnes[1].top-dateBlockHeight, monthOnes[1].right, monthOnes[1].bottom-dateBlockHeight);
+				monthOnes[3].set(monthOnes[2].left, monthOnes[2].top-dateBlockHeight, monthOnes[2].right, monthOnes[2].bottom-dateBlockHeight);
+			}
+		}
+	}
+
 public void updateTime(Canvas canvas, boolean twelve24Mode)
 {
 	int hours;
-
-	
 	
 	viewWidth = getWidth();
 	viewHeight = getHeight();
 
 	if((timeCenter[0] == -1) || (timeBlockSize[0] == 0))
-	  initializeTimeDisplay(-1,-1,80,80);
+	  initializeTimeDisplay(-1,-1,60,60);
 	if((dateCenter[0] == -1) || (dateBlockSize[0] == 0))
 	  initializeDateDisplay(-1,-1,80,80);
 
 	Calendar rightNow = Calendar.getInstance();
-
-	if(timeDateBlock.isAmPmMode() == true)
-		hours = rightNow.get(Calendar.HOUR);
-	else
-		hours = rightNow.get(Calendar.HOUR_OF_DAY);
+	
+	hours = rightNow.get(Calendar.HOUR_OF_DAY);
+	if((hours > 12) && (getAmPmMode() == true))
+		hours -= 12;
+	else if((hours == 0) && (getAmPmMode() == true))
+		hours = 12;
+		
 	int minutes = rightNow.get(Calendar.MINUTE);
 	int seconds = rightNow.get(Calendar.SECOND);
 
@@ -551,7 +807,7 @@ public void updateTime(Canvas canvas, boolean twelve24Mode)
 	int day = rightNow.get(Calendar.DATE);
 	int year = rightNow.get(Calendar.YEAR)%100;
 
-	//showDate(canvas, month, day, year);
+	showDate(canvas, month, day, year);
 }
 
 private void showTime(Canvas canvas, int hours, int minutes, int seconds)
@@ -604,8 +860,10 @@ private void showTime(Canvas canvas, int hours, int minutes, int seconds)
 	}
 	for(int i=0;i<4;i++)
 	{
-		if((hourOnes & 1) == 1) paint = paintOnColor;
-		else paint = paintOffColor;
+		if((hourOnes & 1) == 1) 
+			paint = paintOnColor;
+		else 
+			paint = paintOffColor;
 		hourOnes >>= 1;
 		drawShape(canvas, hoursOnes[i], paint);
 	}
@@ -631,69 +889,114 @@ private void showDate(Canvas canvas, int month, int day, int year)
 	Paint paintOffColor = new Paint();
 	paintOffColor.setColor(dateOffColor);
 
+	int dayOne = day%10;
+	int dayTen = day/10;
+	int monthOne = month%10;
+	int monthTen = month/10;
+	int yearOne = year%10;
+	int yearTen = year/10;
+	
 	for(int i=0;i<4;i++)
 	{
-		if((month & 1) == 1) paint = paintOnColor;
+		if((monthOne & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		month >>= 1;
+		monthOne >>= 1;
 		drawShape(canvas, monthOnes[i], paint);
 	}
 
-	if(month >= 10)paint = paintOnColor;
+	if(monthTen >= 10) paint = paintOnColor;
 	else paint = paintOffColor;
 	drawShape(canvas, monthTens, paint);
 
 	for(int i=0;i<4;i++)
 	{
-		if((day & 1) == 1) paint = paintOnColor;
+		if((dayOne & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		day >>= 1;
+		dayOne >>= 1;
 		drawShape(canvas, dayOnes[i], paint);
 	}
 	for(int i=0;i<2;i++)
 	{
-		if((day & 1) == 1) paint = paintOnColor;
+		if((dayTen & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		day >>= 1;
+		dayTen >>= 1;
 		drawShape(canvas, dayTens[i], paint);
 	}
 	for(int i=0;i<4;i++)
 	{
-		if((year & 1) == 1) paint = paintOnColor;
+		if((yearOne & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		year >>= 1;
+		yearOne >>= 1;
 		drawShape(canvas, yearOnes[i], paint);
 	}
 	for(int i=0;i<4;i++)
 	{
-		if((year & 1) == 1) paint = paintOnColor;
+		if((yearTen & 1) == 1) paint = paintOnColor;
 		else paint = paintOffColor;
-		year >>= 1;
+		yearTen >>= 1;
 		drawShape(canvas, yearTens[i], paint);
 	}
 }
 
 private void drawShape(Canvas canvas, Rect rect, Paint paint)
 {
-	int shape = timeDateBlock.getShape();
-
+	paint.setStyle(Style.FILL);
+	Path path = new Path();
+	RectF rectf = new RectF();
+	
 	switch(shape)
 	{
-		case TimeDateBlock.RECTANGLE:
-			canvas.drawRect(rect, paint);
+		case RECTANGLE:
+			rectf.set(rect);
+			canvas.drawRoundRect(rectf, rectf.width()/4, rectf.height()/4, paint);
 			break;
 
-		case TimeDateBlock.CIRCLE:
+		case CIRCLE:
 			canvas.drawCircle(rect.centerX(), rect.centerY(), (timeBlockWidth > timeBlockHeight)?rect.height()/2:rect.width()/2, paint);
 			break;
 
-		case TimeDateBlock.OVAL:
-			RectF rectf = new RectF();
+		case OVAL:
 			rectf.set(rect);
 			canvas.drawOval(rectf, paint);
 			break;
-
-			default:break;
+			
+		case TRIANGLE_UP:
+			path.reset(); // only needed when reusing this path for a new build
+			path.moveTo(rect.left, rect.bottom); // used for first point
+			path.lineTo(rect.right, rect.bottom);
+			path.lineTo((rect.left+rect.right)/2, rect.top);
+			path.close();
+			canvas.drawPath(path, paint);
+			break;
+			
+		case TRIANGLE_DOWN:
+			path.reset(); // only needed when reusing this path for a new build
+			path.moveTo(rect.left, rect.top); // used for first point
+			path.lineTo(rect.right, rect.top);
+			path.lineTo((rect.left+rect.right)/2, rect.bottom);
+			path.close();
+			canvas.drawPath(path, paint);
+			break;
+			
+		case TRIANGLE_LEFT:
+			path.reset(); // only needed when reusing this path for a new build
+			path.moveTo(rect.right, rect.top); // used for first point
+			path.lineTo(rect.right, rect.bottom);
+			path.lineTo(rect.left, (rect.bottom+rect.top)/2);
+			path.close();
+			canvas.drawPath(path, paint);
+			break;
+			
+		case TRIANGLE_RIGHT:
+			path.reset(); // only needed when reusing this path for a new build
+			path.moveTo(rect.left, rect.top); // used for first point
+			path.lineTo(rect.left, rect.bottom);
+			path.lineTo(rect.right, (rect.bottom + rect.top)/2);
+			path.close();
+			canvas.drawPath(path, paint);
+			break;
+								
+		default:break;
 	}
 }  
 
@@ -732,307 +1035,6 @@ private void drawShape(Canvas canvas, Rect rect, Paint paint)
   	updateTime(canvas, updateTimeDefaults.Get1224Mode());
   }
     
-//  public void updateTime(Canvas canvas, boolean twelve24Mode)
-//	{
-//	  int hours;
-//	  
-//	  Calendar rightNow = Calendar.getInstance();
-//	  
-//	  if(timeDateBlock.isAmPmMode() == true)
-//		  hours = rightNow.get(Calendar.HOUR);
-//	  else
-//		  hours = rightNow.get(Calendar.HOUR_OF_DAY);
-//	  int minutes = rightNow.get(Calendar.MINUTE);
-//	  int seconds = rightNow.get(Calendar.SECOND);
-//	  
-//	  int month = rightNow.get(Calendar.MONTH) + 1;
-//	  int day = rightNow.get(Calendar.DATE);
-//	  int year = rightNow.get(Calendar.YEAR)%100;
-//	  
-//	  int height = getHeight();
-//	  int width = getWidth();
-//	  
-//	  if((height == 0) || (width == 0))
-//		  return;
-//		  
-//	  if((timeCenter[0] == 100000) || (timeBlockSize[0] == 0))
-//		  initializeTimeBlock(height,width);
-//	  if((dateCenter[0] == 100000) || (dateBlockSize[0] == 0))
-//		  initializeDateBlock(height,width);
-//	  
-//	  int timeLeft = timeCenter[0] - timeBlockSize[0]/2;
-//	  int timeRight = timeCenter[0] + timeBlockSize[0]/2;
-//	  int timeTop = timeCenter[1] - timeBlockSize[1]/2;
-//	  int timeBottom = timeCenter[1] + timeBlockSize[1]/2;
-//
-//	  setSecondsBlocks(canvas, seconds);
-//	  
-//	  setMinutesBlocks(canvas, minutes);	  
-//	  setHoursBlocks(canvas, hours);	  	
-//
-//	  if(dayMonthDisplayMode == true)
-//	  {
-//  	    setDaysBlocks(canvas, day);
-//	    setMonthsBlocks(canvas, month);
-//	  }
-//	  else
-//	  {
-//	    setMonthsBlocks(canvas, month);
-//		setDaysBlocks(canvas, day);
-//	  }
-//	  setYearsBlocks(canvas, year);	  
-//	  String timerOrientation;
-//		int rotation = getScreenOrientation();
-//		if(rotation == ORIENTATION_PORTRAIT)
-//		{
-//			timerOrientation = "Portrait";
-//		}
-//		else
-//		{
-//			timerOrientation = "Landscape";
-//		}
-//		
-//	  int color = 0xFF000000 | TimeBackgroundColor;
-//
-//	  paint.setColor(borderColor);
-//	  
-//	  paint.setTextSize(70);
-//	  canvas.drawRect(timeLeft, timeTop, timeRight, timeBottom, paint);
-//	  color = 0xFF000000 | TimeOnColor;
-//	  paint.setColor(color);
-//	  canvas.drawRect(timeLeft+borderWidth, timeTop+borderWidth, timeRight-borderWidth, timeBottom-borderWidth, paint);
-//	  canvas.drawText(timerOrientation,  200, 200, paint);
-//
-//	}
-	
-	private void setTimeBlocks(TimeDateBlock block, int time, Canvas canvas, int blockNumber)
-	{
-		paint.setColor(block.GetOffColor());
-		paint.setStrokeWidth(10);
-
-		int border = 10;
-		int width = timeDateBlock.getWidth();
-		int height = timeDateBlock.getHeight();
-		int[] center = timeDateBlock.getCenter();
-//		int left = block.GetCenter()[0] - (block.GetWidth()/2);
-//		int right = block.GetCenter()[0] + (block.GetWidth()/2);
-//		int top = block.GetCenter()[1] - (block.GetHeight()/2);
-//		int bottom = block.GetCenter()[1] + (block.GetHeight()/2);		
-		int left = center[0] - (width/2);
-		int right = center[0] + (width/2);
-		int top = center[1] - (height/2);
-		int bottom = center[1] + (height/2);		
-
-		int shape = timeDateBlock.Shape;
-		
-		canvas.drawRect(left, top, right, bottom, paint);
-		
-	  if((time & blockNumber) == blockNumber)
-	  {
-		  paint.setColor(block.GetOnColor());
-
-//			left = block.GetCenter()[0] - (block.GetWidth()/2) + border;
-//			right = block.GetCenter()[0] + (block.GetWidth()/2) - border;
-//			top = block.GetCenter()[1] - (block.GetHeight()/2) + border;
-//			bottom = block.GetCenter()[1] + (block.GetHeight()/2) - border;
-			left = center[0] - (width/2) + border;
-			right = center[0] + (width/2) - border;
-			top = center[1] - (height/2) + border;
-			bottom = center[1] + (height/2) - border;
-		  
-			canvas.drawRect(left, top, right, bottom, paint);
-	  }
-	}
-	
-	private void setTransparentTimeBlocks(TimeDateBlock block, int time, Canvas canvas, int blockNumber)
-	{
-		paint.setColor(backgroundColor);
-		paint.setStrokeWidth(10);
-
-		int rotation = getScreenOrientation();
-		if(rotation == ORIENTATION_PORTRAIT)
-		{
-			
-		}
-		else
-		{
-			
-		}
-		
-		int border = 10;
-		int width = timeDateBlock.getWidth();
-		int height = timeDateBlock.getHeight();
-		int[] center = timeDateBlock.getCenter();
-//		int left = block.GetCenter()[0] - (block.GetWidth()/2);
-//		int right = block.GetCenter()[0] + (block.GetWidth()/2);
-//		int top = block.GetCenter()[1] - (block.GetHeight()/2);
-//		int bottom = block.GetCenter()[1] + (block.GetHeight()/2);		
-		int left = block.GetCenter()[0] - (width/2);
-		int right = block.GetCenter()[0] + (width/2);
-		int top = block.GetCenter()[1] - (height/2);
-		int bottom = block.GetCenter()[1] + (height/2);		
-		int sizeX = right - left;
-		int sizeY = bottom - top;
-		
-		int shape = timeDateBlock.getShape();
-		
-		switch(shape)
-		{
-			case TimeDateBlock.RECTANGLE:
-				canvas.drawRect(left, top, right, bottom, paint);
-				break;
-				
-			case TimeDateBlock.CIRCLE:
-				canvas.drawCircle(block.GetCenter()[0], block.GetCenter()[1], (sizeX > sizeY)?sizeY/2:sizeX/2, paint);
-				break;
-
-			case TimeDateBlock.OVAL:
-				RectF oval = new RectF(left, top, right, bottom);
-				canvas.drawOval(oval, paint);
-				break;
-				
-				default:break;
-		}
-		
-//		public void drawOval (RectF oval, Paint paint)  
-//		RectF is class for drawing rectangle...whose constructor is defined as following...
-//
-//		RectF(x,y,x+width,y+height); 		
-	  if((time & blockNumber) == blockNumber)
-	  {
-		  paint.setColor(backgroundColor ^ 0x00FFFFFF);
-
-//		left = block.GetCenter()[0] - (block.GetWidth()/2) + border;
-//		right = block.GetCenter()[0] + (block.GetWidth()/2) - border;
-//		top = block.GetCenter()[1] - (block.GetHeight()/2) + border;
-//		bottom = block.GetCenter()[1] + (block.GetHeight()/2) - border;
-		left = block.GetCenter()[0] - (width/2) + border;
-		right = block.GetCenter()[0] + (width/2) - border;
-		top = block.GetCenter()[1] - (height/2) + border;
-		bottom = block.GetCenter()[1] + (height/2) - border;
-		sizeX = right - left;
-		sizeY = bottom - top;
-	  
-		switch(shape)
-		{
-			case TimeDateBlock.RECTANGLE:
-				canvas.drawRect(left, top, right, bottom, paint);
-				break;
-				
-			case TimeDateBlock.CIRCLE:
-				canvas.drawCircle(block.GetCenter()[0], block.GetCenter()[1], (sizeX > sizeY)?sizeY/2:sizeX/2, paint);
-				break;
-
-			case TimeDateBlock.OVAL:
-				RectF oval = new RectF(left, top, right, bottom);
-				canvas.drawOval(oval, paint);
-				break;
-				
-				default:break;
-		}		
-	  }
-	}
-	
-	private void setSecondsBlocks(Canvas canvas, int seconds)
-	{
-		int secondOnes = seconds%10;
-		int secondsTens = seconds/10;
-		
-		setTransparentTimeBlocks(timeDateBlock, secondOnes, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, secondOnes, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, secondOnes, canvas, 4);
-		setTransparentTimeBlocks(timeDateBlock, secondOnes, canvas, 8);
-		
-		setTransparentTimeBlocks(timeDateBlock, secondsTens, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, secondsTens, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, secondsTens, canvas, 4);
-	}
-	
-	public void setMinutesBlocks(Canvas canvas, int minutes)
-	{
-		//static int oldMinutes = minutes;
-		
-		int minuteOnes = minutes%10;
-		int minuteTens = minutes/10;
-		
-		setTransparentTimeBlocks(timeDateBlock, minuteOnes, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, minuteOnes, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, minuteOnes, canvas, 4);
-		setTransparentTimeBlocks(timeDateBlock, minuteOnes, canvas, 8);
-		
-		setTransparentTimeBlocks(timeDateBlock, minuteTens, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, minuteTens, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, minuteTens, canvas, 4);
-	}
-  
-	public void setHoursBlocks(Canvas canvas, int hours)
-	{
-		int hourOnes = hours%10;
-		int hourTens = hours/10;
-		
-		setTransparentTimeBlocks(timeDateBlock, hourOnes, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, hourOnes, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, hourOnes, canvas, 4);
-		setTransparentTimeBlocks(timeDateBlock, hourOnes, canvas, 8);
-		
-		setTransparentTimeBlocks(timeDateBlock, hourTens, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, hourTens, canvas, 2);
-		
-		if(timeDateBlock.isAmPmMode() == true)
-		{
-		  paint.setColor(0xFF000000);
-	  	  paint.setTextSize(100);
-	  	  if(hours < 12)
-	  		  canvas.drawText("A",  20, 80, paint);
-	  	  else
-	  		  canvas.drawText("P",  20, 80, paint);
-		}
-	}
-  
-	private void setDaysBlocks(Canvas canvas, int day)
-	{
-		int dayOnes = day%10;
-		int dayTens = day/10;
-		
-		setTransparentTimeBlocks(timeDateBlock, dayOnes, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, dayOnes, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, dayOnes, canvas, 4);
-		setTransparentTimeBlocks(timeDateBlock, dayOnes, canvas, 8);
-		
-		setTransparentTimeBlocks(timeDateBlock, dayTens, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, dayTens, canvas, 2);
-	}
-	
-	public void setMonthsBlocks(Canvas canvas, int month)
-	{
-		int monthOnes = month%10;
-		int monthTens = month/10;
-		
-		setTransparentTimeBlocks(timeDateBlock, monthOnes, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, monthOnes, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, monthOnes, canvas, 4);
-		setTransparentTimeBlocks(timeDateBlock, monthOnes, canvas, 8);
-		
-		setTransparentTimeBlocks(timeDateBlock, monthTens, canvas, 1);
-	}
-  
-	public void setYearsBlocks(Canvas canvas, int year)
-	{
-		int yearOnes = year%10;
-		int yearTens = year/10;
-		
-		setTransparentTimeBlocks(timeDateBlock, yearOnes, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, yearOnes, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, yearOnes, canvas, 4);
-		setTransparentTimeBlocks(timeDateBlock, yearOnes, canvas, 8);
-		
-		setTransparentTimeBlocks(timeDateBlock, yearTens, canvas, 1);
-		setTransparentTimeBlocks(timeDateBlock, yearTens, canvas, 2);
-		setTransparentTimeBlocks(timeDateBlock, yearTens, canvas, 4);
-		setTransparentTimeBlocks(timeDateBlock, yearTens, canvas, 8);
-	}
-  
-  
 	public void setBackgroundColor(int bgColor)
 	{
 		blue = bgColor & 0xFF;
@@ -1045,6 +1047,11 @@ private void drawShape(Canvas canvas, Rect rect, Paint paint)
 	public int getBackgroundColor()
 	{
 		return backgroundColor;
+	}
+	
+	public void rollBkgdColor(int increment)
+	{
+		backgroundColor += increment;
 	}
 	
 	public void rollBkgdColor()
@@ -1117,6 +1124,51 @@ private void drawShape(Canvas canvas, Rect rect, Paint paint)
 	public int getTimeOnColor()
 	{
 		return this.TimeOnColor;
+	}
+	
+	public int getShape()
+	{
+		return shape;
+	}
+	
+	public void setShape(int shape)
+	{
+		this.shape = shape;
+	}
+	
+	public boolean getAmPmMode()
+	{
+		return amPmMode;
+	}
+	
+	public void setAmPmMode(boolean mode)
+	{
+		amPmMode = mode;
+	}
+	
+	public void setTimer(UpdateTime timer)
+	{
+		this.timer = timer;
+	}
+	
+	public void setTimeBlockWidth(int width)
+	{
+		timeBlockWidth = width;
+	}
+	
+	public void setDateBlockWidth(int width)
+	{
+		dateBlockWidth = width;
+	}
+	
+	public void setTimeBlockHeight(int height)
+	{
+		timeBlockHeight = height;
+	}
+	
+	public void setDateBlockHeight(int height)
+	{
+		dateBlockHeight = height;
 	}
 	
 }

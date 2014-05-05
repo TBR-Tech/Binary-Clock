@@ -21,6 +21,7 @@ public class UpdateTime
     {
 		drawing = draw;
 		canvas = drawing.getCanvas();
+		draw.setTimer(this);
     }
 
 	//public void setupSchedule(DrawView viewDrawer)
@@ -42,7 +43,7 @@ public class UpdateTime
 	    		counter++;
 	    		if(counter == (1000/PERIOD))
 	    		{
-	    			drawing.rollBkgdColor();
+	    			drawing.rollBkgdColor(1);
 	      			drawing.updateTime(canvas, twelve24Mode);   			
 	      			drawing.draw(canvas);
 	      			counter = 0;
