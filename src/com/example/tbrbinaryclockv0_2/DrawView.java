@@ -102,9 +102,9 @@ public class DrawView extends View
 	};
 //endregion Rectangles
 	
-	private int[] timeCenter = {-1,0};
+	public int[] timeCenter = {-1,0};
 	private int[] timeBlockSize = {0,0};
-	private int[] dateCenter = {-1,0};
+	public int[] dateCenter = {-1,0};
 	private int[] dateBlockSize = {0,0};
 
 	public int timeOnColor = 0xFFFF0000;  // red
@@ -180,7 +180,6 @@ public class DrawView extends View
      this.setSoundEffectsEnabled(true);
      playSoundEffect (SoundEffectConstants.CLICK);
 
-     //setMode(MotionMode.DRAW_POLY);
      setOnTouchListener(listener);   
      
 }
@@ -196,7 +195,6 @@ public class DrawView extends View
       @Override
       public boolean onTouch(View v, MotionEvent event) 
       {
-          // Log.d("jabagator", "onTouch: " + event);
           float eventX = event.getX();
           float eventY = event.getY();
           float dx = 0;
@@ -216,12 +214,11 @@ public class DrawView extends View
         	  {
         	  	movingTimeBlock = true;
         	  }
-              // There is no end point yet, so don't waste cycles invalidating.
               return true;
 
            case MotionEvent.ACTION_UP:
         	   {
-        		   movingTimeBlock = false;
+        		 movingTimeBlock = false;
         	   }
         	   break;
         	   
@@ -245,8 +242,10 @@ public class DrawView extends View
 	        		      ((timeBorderRect.bottom + (int)dy) <= moveHeight/2))
 	        		   {
 	        			   left = timeBorderRect.left + (int)dx;
+	        			   left = left < 0 ? 0 : left;
 	        			   //right = timeBorderRect.right + (int)dx;
 	        			   top = timeBorderRect.top + (int)dy;
+	        			   top = top < 0 ? 0 : top;
 	        			   //bottom = timeBorderRect.bottom + (int)dy;
 	        			   
 	        			   initializeTimeDisplay(left+timeDisplayWidth/2, top+timeDisplayHeight/2, timeBlockHeight, timeBlockWidth);
@@ -269,6 +268,7 @@ public class DrawView extends View
 //	        			   }
 //	        			   initializeTimeDisplay((left+right)/2, (top+bottom)/2, timeBlockHeight, timeBlockWidth);
 //	        		   }
+	        		   
 	        	   }
 	        	   else if(movingDateBlock == true)
 	        	   {
@@ -281,38 +281,10 @@ public class DrawView extends View
       }
   };
 
-// if centerX,Y == -1, use h/w to get size
-// else use centerX,Y
-  /**
-   * Sets the DrawingView into one of several modes, such
-   * as "select" mode (e.g., for moving or resizing objects), 
-   * or "Draw polyline" (smooth curve), "draw rectangle", etc.
-   * Can be called from our constructor as well as from the toolbar, etc.
-   * MotionMode is JabaGator's view mode enumeration.
-   */
-  private void setMode(MotionMode motionMode) {
-      switch(motionMode) {
-      case SELECT_AND_MOVE:
-          setOnTouchListener(selectionAndMoveListener);
-          break;
-      case DRAW_POLY:
-          setOnTouchListener(drawPolyLineListener);
-          break;
-      case DRAW_RECTANGLE:
-          setOnTouchListener(drawRectangleListener);
-          break;
-      case DRAW_OVAL:
-          setOnTouchListener(drawOvalListener);
-          break;
-      default:
-          throw new IllegalStateException("Unknown MotionMode " + motionMode);
-      }
-  }
-
   
 //if centerX or centerY == -1, set at default location with size determined by height and width
 // if height or width == -1, set the location on centerx,y using default h/w
-private void initializeTimeDisplay(int centerX, int centerY, int height, int width)
+public void initializeTimeDisplay(int centerX, int centerY, int height, int width)
 {
 	int left = 0;
 	int right = 0;
@@ -454,8 +426,10 @@ private void initializeTimeDisplay(int centerX, int centerY, int height, int wid
 
 	// set the borderBlock
 	left = timeCenter[0] - (timeDisplayWidth/2) - borderWidth;
+	left = left < 0 ? 0 : left;
 	right = timeCenter[0] + (timeDisplayWidth/2) + borderWidth;
 	top = timeCenter[1] - (timeDisplayHeight/2) - borderWidth;
+	top = top < 0 ? 0 : top;
 	bottom = timeCenter[1] + (timeDisplayHeight/2) + borderWidth;
 	timeBorderRect.set(left, top, right, bottom);
 

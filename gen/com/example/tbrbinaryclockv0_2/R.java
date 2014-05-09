@@ -32,28 +32,53 @@ public final class R {
         public static final int ic_menu_redicon=0x7f020004;
     }
     public static final class id {
-        public static final int DateLocation=0x7f0a0009;
-        public static final int SetColors=0x7f0a0000;
-        public static final int SetLocations=0x7f0a0007;
-        public static final int SetOffColor=0x7f0a0002;
-        public static final int SetOnColor=0x7f0a0001;
-        public static final int SetShape=0x7f0a0003;
-        public static final int SetShapeCircle=0x7f0a0004;
-        public static final int SetShapeOval=0x7f0a0006;
-        public static final int SetShapeRectangle=0x7f0a0005;
-        public static final int SetSize=0x7f0a000a;
-        public static final int SizeHeight=0x7f0a000c;
-        public static final int SizeWidth=0x7f0a000b;
-        public static final int TimeLocation=0x7f0a0008;
-        public static final int date_mode=0x7f0a0010;
-        public static final int day_month_mode=0x7f0a0012;
-        public static final int month_day_mode=0x7f0a0011;
-        public static final int twelve24Mode=0x7f0a000d;
-        public static final int twelve_hour_mode=0x7f0a000e;
-        public static final int twenty_four_hour_mode=0x7f0a000f;
+        public static final int DateLocation=0x7f0a001b;
+        public static final int HeightPicker=0x7f0a0002;
+        public static final int SetColors=0x7f0a000d;
+        public static final int SetDateHeight=0x7f0a0022;
+        public static final int SetDateWidth=0x7f0a0021;
+        public static final int SetLocations=0x7f0a0019;
+        public static final int SetOffColor=0x7f0a000f;
+        public static final int SetOnColor=0x7f0a000e;
+        public static final int SetShape=0x7f0a0010;
+        public static final int SetShapeCircle=0x7f0a0011;
+        public static final int SetShapeOval=0x7f0a0013;
+        public static final int SetShapeRectangle=0x7f0a0012;
+        public static final int SetShapeTriangle=0x7f0a0014;
+        public static final int SetShapeTriangleDown=0x7f0a0016;
+        public static final int SetShapeTriangleLeft=0x7f0a0017;
+        public static final int SetShapeTriangleRight=0x7f0a0018;
+        public static final int SetShapeTriangleUp=0x7f0a0015;
+        public static final int SetSize=0x7f0a001c;
+        public static final int SetTimeHeight=0x7f0a001f;
+        public static final int SetTimeWidth=0x7f0a001e;
+        public static final int SizeDate=0x7f0a0020;
+        public static final int SizeTime=0x7f0a001d;
+        public static final int TimeHeightPicker=0x7f0a0007;
+        public static final int TimeLocation=0x7f0a001a;
+        public static final int TimeWidthPicker=0x7f0a000a;
+        public static final int WidthPicker=0x7f0a0003;
+        public static final int buttons=0x7f0a0004;
+        public static final int cancel_date_height_button=0x7f0a0005;
+        public static final int cancel_time_height_button=0x7f0a0009;
+        public static final int cancel_time_width_button=0x7f0a000c;
+        public static final int date_mode=0x7f0a0026;
+        public static final int day_month_mode=0x7f0a0028;
+        public static final int labelX=0x7f0a0001;
+        public static final int labelY=0x7f0a0000;
+        public static final int month_day_mode=0x7f0a0027;
+        public static final int set_date_height_button=0x7f0a0006;
+        public static final int set_time_height_button=0x7f0a0008;
+        public static final int set_time_width_button=0x7f0a000b;
+        public static final int twelve24Mode=0x7f0a0023;
+        public static final int twelve_hour_mode=0x7f0a0024;
+        public static final int twenty_four_hour_mode=0x7f0a0025;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
+        public static final int date_size_dialog=0x7f030001;
+        public static final int time_height_dialog=0x7f030002;
+        public static final int time_width_dialog=0x7f030003;
     }
     public static final class menu {
         public static final int main=0x7f090000;
@@ -61,31 +86,36 @@ public final class R {
     public static final class string {
         public static final int action_settings=0x7f070002;
         public static final int app_name=0x7f070000;
-        public static final int date_center=0x7f07000c;
-        public static final int date_mode=0x7f070013;
-        public static final int day_month_mode=0x7f070015;
-        public static final int image_view_1=0x7f070019;
-        public static final int image_view_2=0x7f07001a;
-        public static final int month_day_mode=0x7f070014;
+        public static final int date_center=0x7f070011;
+        public static final int date_mode=0x7f07001a;
+        public static final int day_month_mode=0x7f07001c;
+        public static final int month_day_mode=0x7f07001b;
         public static final int set_colors=0x7f070003;
-        public static final int set_location=0x7f07000a;
+        public static final int set_location=0x7f07000f;
         public static final int set_off_color=0x7f070005;
         public static final int set_on_color=0x7f070004;
         public static final int set_shape=0x7f070006;
-        public static final int set_size_height=0x7f07000f;
-        public static final int set_size_width=0x7f07000e;
-        public static final int set_sizes=0x7f07000d;
-        public static final int settings_bg_color_confirm=0x7f070016;
-        public static final int settings_bg_color_dialog=0x7f070018;
-        public static final int settings_default_color_confirm=0x7f070017;
+        public static final int set_size_date=0x7f070014;
+        public static final int set_size_height=0x7f070016;
+        public static final int set_size_time=0x7f070013;
+        public static final int set_size_width=0x7f070015;
+        public static final int set_sizes=0x7f070012;
+        public static final int settings_bg_color_confirm=0x7f07001d;
+        public static final int settings_bg_color_dialog=0x7f07001f;
+        public static final int settings_default_color_confirm=0x7f07001e;
         public static final int shape_circle=0x7f070007;
         public static final int shape_oval=0x7f070009;
         public static final int shape_rectangle=0x7f070008;
-        public static final int time_center=0x7f07000b;
+        public static final int shape_triangle=0x7f07000a;
+        public static final int shape_triangle_down=0x7f07000c;
+        public static final int shape_triangle_left=0x7f07000d;
+        public static final int shape_triangle_right=0x7f07000e;
+        public static final int shape_triangle_up=0x7f07000b;
+        public static final int time_center=0x7f070010;
         public static final int title=0x7f070001;
-        public static final int twelve_24_mode=0x7f070010;
-        public static final int twelve_hour_mode=0x7f070011;
-        public static final int twenty_four_hour_mode=0x7f070012;
+        public static final int twelve_24_mode=0x7f070017;
+        public static final int twelve_hour_mode=0x7f070018;
+        public static final int twenty_four_hour_mode=0x7f070019;
     }
     public static final class style {
         /** 

@@ -1,30 +1,37 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
- 	<item 
- 	    android:id="@+id/SetColors" 
-        android:icon="@drawable/ic_menu_greenicon" 
-        android:label="This label"
- 	    android:title="@string/set_colors" 
- 	    android:visible="true">
-       <menu>    
-	       <item 
-	           android:id="@+id/SetOnColor" 
-	           android:title="@string/set_on_color"
-	           android:icon="@drawable/ic_menu_greenicon" 
-	           android:visible="true"/>
-	       <item 
-	           android:id="@+id/SetOffColor" 
-	           android:title="@string/set_off_color" 
-	           android:icon="@drawable/ic_menu_redicon" 
-	           android:visible="true"/>
-       </menu> 
-    </item>
-    <item android:id="@+id/SetShape" android:title="@string/set_shape">
- 	    <menu>
- 			<item android:id="@+id/SetShapeCircle" android:title="@string/shape_circle"></item>
- 			<item android:id="@+id/SetShapeRectangle" android:title="@string/shape_rectangle" />
- 			<item android:id="@+id/SetShapeOval" android:title="@string/shape_oval" />
- 		</menu>
- 	</item> 	
+	<item 
+    android:id="@+id/SetColors" 
+    android:icon="@drawable/ic_menu_greenicon" 
+    android:title="@string/set_colors" 
+    android:visible="true">
+    <menu>    
+			<item 
+				android:id="@+id/SetOnColor" 
+				android:title="@string/set_on_color"
+				android:icon="@drawable/ic_menu_greenicon" 
+				android:visible="true"/>
+			<item 
+		    android:id="@+id/SetOffColor" 
+		    android:title="@string/set_off_color" 
+		    android:icon="@drawable/ic_menu_redicon" 
+		    android:visible="true"/>
+    </menu> 
+	 </item>
+	 <item android:id="@+id/SetShape" android:title="@string/set_shape">
+	   <menu>
+			 <item android:id="@+id/SetShapeCircle" android:title="@string/shape_circle"/>
+			 <item android:id="@+id/SetShapeRectangle" android:title="@string/shape_rectangle"/>
+			 <item android:id="@+id/SetShapeOval" android:title="@string/shape_oval"/>
+			 <item android:id="@+id/SetShapeTriangle" android:title="@string/shape_triangle">
+		   	 <menu>
+					  <item android:id="@+id/SetShapeTriangleUp" android:title="@string/shape_triangle_up"/>
+					  <item android:id="@+id/SetShapeTriangleDown" android:title="@string/shape_triangle_down"/>
+						<item android:id="@+id/SetShapeTriangleLeft" android:title="@string/shape_triangle_left"/>
+						<item android:id="@+id/SetShapeTriangleRight" android:title="@string/shape_triangle_right"/>
+					</menu>
+			 </item>
+		 </menu>
+	</item> 	
  	<item android:id="@+id/SetLocations" android:title="@string/set_location">
  		<menu>
  			<item android:id="@+id/TimeLocation" android:title="@string/time_center"/>
@@ -33,11 +40,21 @@
  	</item>
  	<item android:id="@+id/SetSize" android:title="@string/set_sizes">
  		<menu>
- 			<item android:id="@+id/SizeWidth" android:title="@string/set_size_width"/>
- 			<item android:id="@+id/SizeHeight" android:title="@string/set_size_height"/>
+ 			<item android:id="@+id/SizeTime" android:title="@string/set_size_time">
+ 			    <menu>
+ 			        <item android:id="@+id/SetTimeWidth" android:title = "@string/set_size_width"/>
+ 			        <item android:id="@+id/SetTimeHeight" android:title = "@string/set_size_height"/>
+ 			    </menu>
+ 			</item>
+ 			<item android:id="@+id/SizeDate" android:title="@string/set_size_date">
+ 			    <menu>
+ 			        <item android:id="@+id/SetDateWidth" android:title = "@string/set_size_width"/>
+ 			        <item android:id="@+id/SetDateHeight" android:title = "@string/set_size_height"/>
+ 			    </menu>
+ 			</item>
  		</menu>
  	</item>
- 	<item android:id="@+id/twelve24Mode" android:title="@string/twelve_24_mode" android:checked="false" android:enabled="true" android:visible="true" android:checkable="false">
+ 	<item android:id="@+id/twelve24Mode" android:title="@string/twelve_24_mode">
  		<menu>
  			<item android:id="@+id/twelve_hour_mode" android:title="@string/twelve_hour_mode"/>
  			<item android:id="@+id/twenty_four_hour_mode" android:title="@string/twenty_four_hour_mode"/>

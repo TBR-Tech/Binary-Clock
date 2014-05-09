@@ -1,0 +1,32 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+    
+    <NumberPicker 
+        android:id="@+id/TimeHeightPicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+    />
+
+    <Button
+        android:id="@+id/set_time_height_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/cancel_time_height_button"
+        android:layout_alignBottom="@+id/cancel_time_height_button"
+        android:layout_toLeftOf="@+id/TimeHeightPicker"
+        android:layout_marginRight="16dp"
+        android:text="Set" />
+
+    <Button
+        android:id="@+id/cancel_time_height_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/TimeHeightPicker"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="98dp"
+        android:text="Cancel" />
+
+</RelativeLayout>
